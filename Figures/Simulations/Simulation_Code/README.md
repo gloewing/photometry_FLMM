@@ -1,0 +1,8 @@
+# Simulation Code
+- ``fui.R'' is the version of the FLMM code used to fit models in the simulations
+- ``photo_sim_fLME_Science_Figures.R'' is the R code used to generate some of the figures in the ``Simulation_Figures'' folder. It uses the results/output in the ``Simulation_Results'' folder. It creates the main text simulation figures.
+- ``photo_sim_fLME_Science_figs_delayLength.R'' is the R code used to generate some of the figures in the ``Simulation_Figures'' folder. It uses the results/output in the ``Simulation_Results'' folder. It creates the Appendix figures in which we varied the cue-period length.
+- ``photo_sim_fLME_Science_lengthenRewardPeriod.R'' is the R code used to run simulations (the actual experiments) it produces results/outputs found in the ``Simulation_Results'' folder. It ``fui.R'' to fit models, ``photo_sim_fLME_fn_multi.R'' to simulate data, and uses the real-photometry data found in  ``Simulation_Data.'' folder. This is the best R file to start with if one wishes to recreate analyses.
+- ``photo_sim_fLME_Delay_indiv_obs.R'' is the R code used to generate some of the figures in the ``Simulation_Figures'' folder. It generates the simulated examples in the main test simulation figures of signals from simulated ``animals.''
+- ``photo_sim_fLME_indiv_obs.R'' is the R code used to generate some of the figures in the ``Simulation_Figures'' folder. It also generates the simulated examples in the main test simulation figures of signals from simulated ``animals'' (as above).
+- ``photo_sim_fLME_fn_multi.R'' is the R code that simulates data based upon a model fit with fui.R. 
