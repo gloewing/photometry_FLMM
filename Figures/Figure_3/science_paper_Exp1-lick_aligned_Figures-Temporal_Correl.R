@@ -189,7 +189,6 @@ reward_period_idx=seq(pre_lick_reward_period_samps + 1, reward_period_max_idx)
 dat$reward_num <- dat$trial + (dat$session - 1) * num_trials # number of rewards assuming 100 rewards/session
 dat$licks <- scale(dat$licks, center = TRUE, scale = FALSE)
 dat$lick_time <- scale(dat$lick_time, center = TRUE, scale = FALSE)
-# dat$iri <- scale(dat$iri, center = TRUE, scale = FALSE)
 dat$dat_AUC_pre <- dat_AUC_pre
 dat$dat_AUC_post <- dat_AUC_post
 dat$dat_AUC <- dat_AUC_post - dat_AUC_pre # described in "Experiment 1" of "Data Analysis" in Supplement
@@ -223,7 +222,7 @@ f1 <- dat %>%
          axis.text=element_text(face="bold",color="black", size=rel(2)),
          axis.title = element_text(face="bold", color="black", size=rel(2)),
          legend.key.size = unit(1, "line"), # added in to increase size
-         legend.text = element_text(face="bold", color="black", size = rel(2)), # 3 GCL
+         legend.text = element_text(face="bold", color="black", size = rel(2)), # 
          legend.title = element_text(face="bold", color="black", size = rel(2)),
          strip.text.x = element_text(face="bold", color="black", size = rel(2.5)) ) + 
   guides(colour= guide_legend(title="Animal"))  
@@ -254,9 +253,8 @@ f3 <- dat %>%
   theme( plot.title = element_text(hjust = 0.5, color="black", size=rel(2.5), face="bold"),
          axis.text=element_text(face="bold",color="black", size=rel(2)),
          axis.title = element_text(face="bold", color="black", size=rel(2)),
-         # legend.position = "none",
          legend.key.size = unit(1, "line"), # added in to increase size
-         legend.text = element_text(face="bold", color="black", size = rel(2)), # 3 GCL
+         legend.text = element_text(face="bold", color="black", size = rel(2)), # 
          legend.title = element_text(face="bold", color="black", size = rel(2)),
          strip.text.x = element_text(face="bold", color="black", size = rel(2.5))
          ) + 
@@ -270,7 +268,6 @@ f2 <-
   dplyr::filter(session <= 6,#,
                 session >= 3,
                 iri <= iri_95) %>% # some high leverage points
-  # dplyr::mutate(session = session - 2) %>% # for visualization, have session labels start from 1
   ggplot(aes(y = dat_AUC, x = iri)) +
   geom_point(aes(colour = id),
              size = 2, shape = 21, alpha = 0.65) + 
@@ -285,10 +282,9 @@ f2 <-
   geom_smooth(aes(group = id, colour = id),
               method = "lm",
               alpha = 0.65,
-              #formula = dat_AUC_post ~ bout_rate,
               se = FALSE
   ) +
-  scale_x_continuous( # seq(0, 35, by = 10)
+  scale_x_continuous( #
                      breaks=c(0,10,20,30)) +
   scale_fill_manual(values = c("#ca0020", "lightgrey", "#0868ac", "darkgray", "#E69F00", "#525252", "orange", "black") ) +
   scale_color_manual(values = c("#ca0020", "lightgrey", "#0868ac", "darkgray", "#E69F00", "#525252", "orange", "black")) +
@@ -296,9 +292,8 @@ f2 <-
   theme( plot.title = element_text(hjust = 0.5, color="black", size=rel(2.5), face="bold"),
          axis.text=element_text(face="bold",color="black", size=rel(2)),
          axis.title = element_text(face="bold", color="black", size=rel(2)),
-         # legend.position = "none",
          legend.key.size = unit(1, "line"), # added in to increase size
-         legend.text = element_text(face="bold", color="black", size = rel(2)), # 3 GCL
+         legend.text = element_text(face="bold", color="black", size = rel(2)), # 
          legend.title = element_text(face="bold", color="black", size = rel(2)),
          strip.text.x = element_text(face="bold", color="black", size = rel(2.5))
   ) + guides(colour= guide_legend(title="Animal"))  
@@ -316,14 +311,14 @@ plot <- dat %>%
   summarise(Trials = n()  ) %>%
   # heatmap plot
   ggplot(aes(y = IDs, x = Session, fill = Trials)) +
-  geom_tile() + #n_rows = 8, size = 0.33, colour = "white") +
+  geom_tile() + 
   theme_classic() +
   scale_fill_gradient(low="white", high="red") +
   theme(plot.title = element_text(hjust = 0.5, color="black", size=rel(2.5), face="bold"),
         axis.text=element_text(color="black", size=rel(2)),
         axis.title = element_text(face="bold", color="black", size=rel(2)),
         legend.key.size = unit(2, "line"), # added in to increase size
-        legend.text = element_text(face="bold", color="black", size = rel(2)), # 3 GCL
+        legend.text = element_text(face="bold", color="black", size = rel(2)), # 
         legend.title = element_text(face="bold", color="black", size = rel(2)),
         strip.text.x = element_text(face="bold", color="black", size = rel(2.5))
   ) + guides(fill= guide_legend(title="Trials")) +
