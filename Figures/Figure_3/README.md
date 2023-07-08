@@ -6,5 +6,5 @@
 
 
 # Data
-Data was downloaded from: https://dandiarchive.org/dandiset/000351 in January 2023. 
-We used the associated spreadsheet to identify which relevant subject-specific files to download: https://docs.google.com/spreadsheets/d/1pmpQ5JFhg4Q7h18DQYifjNrW17HtaoPHBt2vJF4mxiU/edit#gid=0
+- Data was downloaded from: https://dandiarchive.org/dandiset/000351 in January 2023. 
+- We used the associated spreadsheet to identify which relevant subject-specific files to download: https://docs.google.com/spreadsheets/d/1pmpQ5JFhg4Q7h18DQYifjNrW17HtaoPHBt2vJF4mxiU/edit#gid=0
