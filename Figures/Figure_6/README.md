@@ -1,6 +1,7 @@
 # Figure 6
 - Code used to generate figure 6 is in "science_paper_Fig6A-D.R"  -- Using this file requires one to download data from the repository listed below (same data as Figure 3).
 - The remaining PDF files are outputted by the R file above and are the final versions of the figures used in the manuscript.
+- Appendix Figure 11 is also generated from "science_paper_Fig6A-D.R"
 
 # Data
 - Data is from the manuscript: Huijeong Jeong et al., Mesolimbic dopamine release conveys causal associations. Science 378, eabq6740(2022). DOI:10.1126/science.abq6740
