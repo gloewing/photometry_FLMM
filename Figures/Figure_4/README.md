@@ -1,5 +1,5 @@
 # Figure 4
-- Code used to generate figure 4 is in "science_paper_Exp1-lick_aligned_Figures.R"  -- Using this file requires one to download data from the repository listed below (same data as Figure 3).
+- Code used to generate FLMM (c)-(d) figure 4 is in "Exp1 - Lick Aligned IRI Author Analysis.R"  -- Using this file requires one to download data from the repository listed below (same data as Figure 3).
 - The remaining PDF files are outputted by the R file above and are the final versions of the figures used in the manuscript.
 - Appendix Figure 10 is also generated from "science_paper_Exp1-lick_aligned_Figures.R"
 
