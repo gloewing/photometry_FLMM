@@ -1,6 +1,6 @@
 # Figure 5
-- Code used to conduct FLMM analyses for figure 5 are in "Exp1 - Lick Aligned.R"  -- Using this file requires one to download data from the repository listed below (same data as Figure 4).
-- 
+- Code used to conduct FLMM analyses for Figure 5 (d)-(f) are in "Exp1 - Lick Aligned.R"  -- Using this file requires one to download data from the repository listed below (same data as Figure 4).
+- Code used to generate Figure 5 (a)-(c) are in "Simpsons_Figs Final.R"
 - The remaining PDF files are outputted by the R file above and are the final versions of the figures used in the manuscript.
 
 # Data
