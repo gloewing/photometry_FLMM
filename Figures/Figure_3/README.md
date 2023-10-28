@@ -1,5 +1,5 @@
 # Figure 3
-- Code used to generate figure 3 is in "science_paper_Exp1-lick_aligned_Figures-Temporal_Correl.R"  -- Using this file requires one to download data from the repository listed below.
+- Code used to generate figure 3 is in "Exp1 - Figure2.R"  -- Using this file requires one to download data from the repository listed below.
 - "Exp1_grid.pdf" is the final version of Figure 3 (a)-(d)
 - Figure 3e was generated in Microsoft Powerpoint in hierarchical data.pptx
 
