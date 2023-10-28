@@ -1,7 +1,7 @@
 # Figure 3
-- Code used to generate figure 3 is in "Exp1 - Figure2.R"  -- Using this file requires one to download data from the repository listed below.
-- "Exp1_grid.pdf" is the final version of Figure 3 (a)-(d)
-- Figure 3e was generated in Microsoft Powerpoint in hierarchical data.pptx
+- Code used to generate figure 3 is in "Exp1 - Figure3.R"  -- Using this file requires one to download data from the repository listed below.
+- "Exp1_grid.pdf" is Figure 3 (b)-(e)
+- Figure 3a was generated in Microsoft Powerpoint in hierarchical data.pptx
 
 # Data
 - Data is from the manuscript: Huijeong Jeong et al., Mesolimbic dopamine release conveys causal associations. Science 378, eabq6740(2022). DOI:10.1126/science.abq6740
