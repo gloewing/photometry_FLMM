@@ -90,7 +90,7 @@ min_time <- 1.5 # time when cue starts from start of trials
 
 lickPlus_color <- "#ca0020"
 lickMinus_color <- "grey40"
-
+avg_color <- "#0868ac"
 # session 8 is the latest session in which all animals are recorded
 dat %>% 
   as_tibble() %>%
@@ -133,7 +133,7 @@ p1 <- mean_data %>%
   geom_line(size = 1, aes(colour = lickState)) + 
   xlab("Time from Cue Onset (sec)") +
   ylab("Photometry Signal") +
-  labs(title = "Peak Amplitude (L+ vs. L-)") +
+  labs(title = "Peak Amplitude (Lick+ vs. Lick-)") +
   coord_cartesian(ylim = c(-0.75, 4)) +
   scale_fill_manual(values = c(lickPlus_color, lickMinus_color) ) + 
   scale_color_manual(values = c(lickPlus_color, lickMinus_color) ) +
@@ -144,12 +144,12 @@ p1 <- mean_data %>%
              size = rel(0.5),
              alpha = 0.7) +
   theme(plot.title = element_text(size=14, face="bold", hjust=0.5),
-        axis.title.x = element_text(size=12, face="bold"), #element_blank(),
+        axis.title.x = element_text(size=14, face="bold"), #element_blank(),
         axis.title.y = element_blank(),
         legend.position="none") + 
   guides(color= guide_legend(title="Prep Lick"), fill = "none")  +
-  geom_brace(aes( c(1.5,1.7), c(peaks$peak[2], peaks$peak[1]), label="Peak \nDifference"), 
-             inherit.data=FALSE, labelsize=4, rotate = 270) +
+  # geom_brace(aes( c(1.5,1.7), c(peaks$peak[2], peaks$peak[1]), label="Peak \nDifference"), 
+  #            inherit.data=FALSE, labelsize=4, rotate = 270) +
   # lick + label
   annotate(geom = "text", x = -0.5, y = 1.2, label = "Lick+", 
            color = lickPlus_color, size = 5) +
@@ -200,12 +200,12 @@ p_inst <- mean_data %>%
 set.seed(25) # for jitter (position of highlighted dot)
 p1_combined <- p1 + 
                   geom_curve(aes(x = 2, y = peaks$peak[1] * 0.94, xend = 4.05, yend = 1.45),
-                            color = lickPlus_color, size = 0.2, alpha = 0.75, curvature = 0.55, # 0.5
+                            color = lickPlus_color, size = 0.2, alpha = 0.75, curvature = 0.55, 
                             arrow = arrow(length = unit(0.03, "npc")) ) + 
                   geom_curve(aes(x = 1.98, y = peaks$peak[2], xend = 3, yend = peaks$peak[2]* 0.98),
-                             color = lickMinus_color, size = 0.2, alpha = 0.75, curvature = 0, # 0.5
+                             color = lickMinus_color, size = 0.2, alpha = 0.75, curvature = 0, 
                              arrow = arrow(length = unit(0.03, "npc")) ) + 
-                  patchwork::inset_element(p_inst, 0.65, 0.5, 1, 0.9, align_to = 'full')
+                  patchwork::inset_element(p_inst, 0.565, 0.5, 0.86, 0.9, align_to = 'full') # 0.65, 0.5, 1, 0.9
 
 #######################
 # area under the curve
@@ -265,15 +265,15 @@ p2 <-  mean_data %>%
              size = rel(0.5),
              alpha = 0.55) +
   theme(plot.title = element_text(size=14, face="bold", hjust=0.5),
-        axis.title.x = element_text(size=12, face="bold"), 
-        axis.title.y = element_text(size=12, face="bold"),
+        axis.title.x = element_text(size=14, face="bold"), 
+        axis.title.y = element_text(size=14, face="bold"),
         legend.position="bottom" ) + 
   guides(color= guide_legend(title="Prep Lick"), fill = "none") +
   # peak amplitude
   geom_segment(aes(x = -0.15, y = 0, xend = -0.15, yend = peaks$peak[2]),
-               lineend = "round", linejoin = "bevel", colour = peak_color, # grey35
+               lineend = "round", linejoin = "bevel", colour = peak_color, 
                size = 0.5, 
-              arrow = arrow(length = unit(0.5, "cm")) ) + #, ends = "both"
+              arrow = arrow(length = unit(0.5, "cm")) ) + 
   annotate(geom = "text", x = -0.35, y = peaks$peak[2] / 2 + 0.075, 
            label = "Peak Amplitude", fontface =2,
            color = peak_color, size = 3.35,  angle = 90) +
@@ -281,7 +281,7 @@ p2 <-  mean_data %>%
   geom_segment(aes(x = 0.05, y = peaks$peak[2], xend = 1.8, yend = peaks$peak[2]),
                lineend = "round", linejoin = "bevel", colour = time_color,
                size = 0.5, 
-               arrow = arrow(length = unit(0.5, "cm")) ) + # , ends = "both"
+               arrow = arrow(length = unit(0.5, "cm")) ) + 
   annotate(geom = "text", x = (1.825 - 0.3) / 2, y = peaks$peak[2] + 0.15, 
            label = "Time to Peak", fontface =2,
            color = time_color, size = 3.35) +
@@ -322,21 +322,21 @@ mean_dat2 <- mean_data %>%
                   as.integer(  seq( min(mean_data$trial_num),  
                                     max(mean_data$trial_num), 
                                     length = 10)) ) %>%
+  dplyr::mutate(trial_num = trial_num - min(trial_num) + 1) %>%
   dplyr::rename(photometry = value)
-
 
 # first plot average for animal 1 +/- s.e.m.
 p4 <- 
-  ggplot(NULL, aes(x = time, y = photometry)) + # ,  fill = "#ca0020"      , 
-  geom_ribbon(data = mean_dat1, aes(ymin=y_low, ymax=y_high, fill = "#ca0020"), alpha=0.5, colour = NA) + 
-  geom_line(data = mean_dat2, size = 1, aes(colour = as.factor(trial_num))) +  #, colour = "#ca0020"
+  ggplot(NULL, aes(x = time, y = photometry)) + 
+  geom_ribbon(data = mean_dat1, aes(ymin=y_low, ymax=y_high, fill = avg_color), alpha=0.5, colour = NA) + 
+  geom_line(data = mean_dat2, size = 1, aes(colour = as.factor(trial_num))) + 
   scale_color_grey(start = 0.7, end = 0.1) +
-  geom_line(data = mean_dat1, size = 1, colour = "#ca0020") + 
+  geom_line(data = mean_dat1, size = 1.5, colour = avg_color) + 
   xlab("Time from Cue Onset (sec)") +
   ylab("Photometry Signal") +
-  labs(title = "W/in Animal, W/in Session, Across Trials (L+)") +
+  labs(title = "Between-Trial Variability for Example Animal") +
   coord_cartesian(ylim = c(-2.5, 4)) +
-  scale_fill_manual(values = c("#ca0020") ) + 
+  scale_fill_manual(values = c(avg_color) ) + 
   theme_classic() + 
   geom_vline(xintercept=151/ Hz - min_time,
              linetype="dashed",
@@ -355,9 +355,12 @@ p4 <-
              alpha = 0.7) +
   theme(plot.title = element_text(size=14, face="bold", hjust=0.5),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(size=12, face="bold"),
-        legend.position="none") + 
-  guides(color= guide_legend(title="Prep Lick"), fill = "none")
+        axis.title.y = element_text(size=14, face="bold"),
+        legend.position="right") + 
+  guides(color= guide_legend(title="Trial"), fill = "none") +
+  annotate(geom = "text", x = -0.75, y = 2, 
+           label = latex2exp::TeX("Session Average", bold = TRUE),
+           color = avg_color, size = 4)
 
 #################################################################################
 # variability within animal 1 across sessions (and within lick+)
@@ -388,7 +391,7 @@ p5 <- mean_data %>%
   scale_color_grey(start = 0.7, end = 0.1) +
   xlab("Time from Cue Onset (sec)") +
   ylab("Photometry Signal") +
-  labs(title = "W/in Animal B/w Session Avgs (L+)") +
+  labs(title = "Variability in Session Averages for Example Animal") +
   coord_cartesian(ylim = c(-.7, 2.25)) +
   theme_classic() + 
   geom_vline(xintercept=151/ Hz - min_time,
@@ -409,8 +412,8 @@ p5 <- mean_data %>%
   theme(plot.title = element_text(size=14, face="bold", hjust=0.5),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        legend.position="none") + 
-  guides(color= guide_legend(title="Prep Lick"), fill = "none")
+        legend.position="right") + 
+  guides(color= guide_legend(title="Session"), fill = "none")
 
 
 #################################################################################
@@ -459,7 +462,8 @@ mean_data <- dat %>%
                 seshID == sess_max, # last session so well trained
                 ids %in% ids_inc, # only animals with sufficient trials (only eliminates one animal)
                 lickState == 1) %>%  # only look at lick+
-  dplyr::mutate(time = as.numeric(time) / Hz - min_time) %>%
+  dplyr::mutate(time = as.numeric(time) / Hz - min_time,
+                ids = as.integer(as.factor(ids))) %>%
   dplyr::group_by(time, ids) %>%
   dplyr::summarise(photometry = mean(value, na.rm = TRUE),
                    y_low = mean(value, na.rm = TRUE) - sd(value) / sqrt(n()), # +/- sem
@@ -468,13 +472,13 @@ mean_data <- dat %>%
 # first plot average for animal 1 +/- s.e.m.
 p6 <- mean_data %>%
   ggplot(aes(x = time, y = photometry, ymin=y_low, ymax=y_high, fill = as.factor(ids) )) + 
-  geom_ribbon(aes(fill = "#ca0020"), alpha=0.3, colour = NA) + 
+  geom_ribbon(aes(fill = avg_color), alpha=0.3, colour = NA) + 
   geom_line(size = 1, aes(colour = as.factor(ids))) + 
   scale_color_grey(start = 0.7, end = 0.1) +
   scale_fill_grey(start = 0.7, end = 0.1) +
   xlab("Time from Cue Onset (sec)") +
   ylab("Photometry Signal") +
-  labs(title = "W/in Session Avgs. Across Animals (L+)") +
+  labs(title = "Variability in Session Averages Across Animals") +
   coord_cartesian(ylim = c(-0.75, 3.25)) +
   theme_classic() + 
   geom_vline(xintercept=151/ Hz - min_time,
@@ -493,10 +497,10 @@ p6 <- mean_data %>%
              size = rel(0.5),
              alpha = 0.7) +
   theme(plot.title = element_text(size=14, face="bold", hjust=0.5),
-        axis.title.x = element_blank(), #element_text(size=12, face="bold"),
-        axis.title.y = element_text(size=12, face="bold"),
-        legend.position="none") + 
-  guides(color= guide_legend(title="Prep Lick"), fill = "none")
+        axis.title.x = element_blank(), 
+        axis.title.y = element_text(size=14, face="bold"),
+        legend.position="right") + 
+  guides(color= guide_legend(title="Animal"), fill = "none")
 
 
 #################################################################################
@@ -534,7 +538,8 @@ mean_data <- dat %>%
                 seshID == sess_max, # last session so well trained
                 ids %in% ids_inc # only animals with sufficient trials (only eliminates one animal)
                 ) %>%  
-  dplyr::mutate(time = as.numeric(time) / Hz - min_time) %>%
+  dplyr::mutate(time = as.numeric(time) / Hz - min_time,
+                ids = as.integer(as.factor(ids))) %>%
   dplyr::group_by(time, ids, lickState) %>%
   dplyr::summarise(photometry = mean(value, na.rm = TRUE) )
 
@@ -562,15 +567,15 @@ mean_data_avg <- mean_data %>%
 # first plot average for animal 1 +/- s.e.m.
 p7 <- 
   ggplot(NULL, aes(x = time, y = photometry)) + 
-  geom_ribbon(data = mean_data_avg, aes(ymin=y_low, ymax=y_high, fill = "#ca0020"), alpha=0.3) + 
+  geom_ribbon(data = mean_data_avg, aes(ymin=y_low, ymax=y_high, fill = avg_color), alpha=0.3) + 
   geom_line(data = mean_data, size = 1, aes(colour = as.factor(ids))) +  
   scale_color_grey(start = 0.7, end = 0.1) +
-  geom_line(data = mean_data_avg, size = 1, colour = "#ca0020") + 
+  geom_line(data = mean_data_avg, size = 1.5, colour = avg_color) + 
   xlab("Time from Cue Onset (sec)") +
   ylab("Photometry Signal") +
-  labs(title = "Avg L+/L- Difference B/w Animals (1 Session)") +
+  labs(title = "Variability between Animals in Lick+/Lick- Difference") +
   coord_cartesian(ylim = c(-2.1, 2.25)) +
-  scale_fill_manual(values = c("#ca0020") ) + 
+  scale_fill_manual(values = c(avg_color) ) + 
   theme_classic() + 
   geom_vline(xintercept=151/ Hz - min_time,
              linetype="dashed",
@@ -590,8 +595,11 @@ p7 <-
   theme(plot.title = element_text(size=14, face="bold", hjust=0.5),
         axis.title.x = element_blank(), 
         axis.title.y = element_blank(),
-        legend.position="none") + 
-  guides(color= guide_legend(title="Prep Lick"), fill = "none")
+        legend.position="right") + 
+  guides(color= guide_legend(title="Animal"), fill = "none")  +
+  annotate(geom = "text", x = -0.75, y = 1, 
+           label = latex2exp::TeX("Average", bold = TRUE),
+           color = avg_color, size = 4)
 ####################################################################
 ##########################
 # join figures and save
@@ -616,6 +624,6 @@ plot_combined <- p6 + p7 + p4 + p5 + p2 + p1_combined +
 set.seed(25)
 ggsave( "~/Desktop/NIMH Research/Photometry/fLME_methods_paper/Figures/intro_figure/intro_figure.pdf",
         plot = plot_combined,
-        width = 10,
+        width = 14,
         height = 12)
 
