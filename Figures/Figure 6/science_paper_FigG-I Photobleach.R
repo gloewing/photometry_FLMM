@@ -211,122 +211,6 @@ dat2 <- left_join(dat2, num_trial, by = c("id", "session"))
 dat2$trial <- (dat2$trial - 1) / (dat2$m-1) # standardize trial to be [0,1]
 
 set.seed(1)
-#########################################################################################
-# best model
-DA_delay <- fastFMM::fui(formula = photometry ~ trial + 
-                  (1 | id/session), 
-                data = dat2,  
-                parallel = FALSE,
-                G_return = TRUE,
-                nknots_min = nknots_min,
-                subj_ID = "id",
-                REs = TRUE)
-
-colMeans(DA_delay$aic[reward_period_idx,]) # do not use pre-reward period values for AIC
-
-tm <- pre_min_tm * target_Hz # lick onset
-fit_dat <- DA_delay
-# AIC      BIC     cAIC 
-# 2650.570 2675.276       NA 
-
-# plot
-plot.f4 <- list()
-for(prdtr in 1:nrow(fit_dat$betaHat)){
-  plot.f4[[prdtr]] <- plot.FUI(r = prdtr, 
-                               Hz = target_Hz, 
-                               align = tm,
-                               var_name = c("Intercept: Mean Signal on 1st Trial", "Trial Number"))#,
-  
-  # add interval names
-  plot.f4[[prdtr]] <- interval_label(fig = plot.f4[[prdtr]],
-                                     x_interval_list = list(c(-1,0), c(0, 2)),
-                                     x_interval_text = list(c(-1.25), c(1.75)), # 
-                                     text_list = list("Baseline", "Cue Period"),
-                                     scl = 1.01, # percent for lines above original ylim values
-                                     x_scl = 0.0025, # percent for gap in lines
-                                     txt_adjust = 0.03, # percent text is above line
-                                     txt_size = 3,
-                                     col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
-}
-
-# align plots
-fig <- do.call("grid.arrange", c(plot.f4, nrow = 2))
-
-# save
-setwd("~/Desktop/NIMH Research/Photometry/fLME_methods_paper/Figures/Science-Fig4G")
-ggsave( "Short_Delay_Trial_Effect.pdf",
-        plot = fig,
-        width = 8,
-        height = 8)
-
-#########################################################################################
-# best model that includes session (although still worse than model with no fixed-effect for session)
-DA_delay <- fastFMM::fui(formula = photometry ~ trial + session + 
-                    (1 | id/session), 
-                  data = dat2,  
-                  family = "gaussian", 
-                  parallel = TRUE,
-                  nknots_min = nknots_min,
-                  subj_ID = "id",
-                  REs = TRUE)
-
-colMeans(DA_delay$aic[reward_period_idx,]) # do not use pre-reward period values for AIC
-# AIC      BIC     cAIC 
-# 2658.993 2693.581       NA 
-tm <- pre_min_tm * target_Hz # lick onset
-fit_dat <- DA_delay
-
-# plot
-plot.f4 <- list()
-for(prdtr in 1:nrow(fit_dat$betaHat)){
-  plot.f4[[prdtr]] <- plot.FUI(r = prdtr, 
-                               Hz = target_Hz, 
-                               align = tm,
-                               var_name = c("Intercept: Session 1 Mean (1st trial)", "Trial Number", "Session 2 Mean - Session 1 Mean", "Session 3 Mean - Session 1 Mean"))#,
-  
-  # add interval names
-  plot.f4[[prdtr]] <- interval_label(fig = plot.f4[[prdtr]],
-                                     x_interval_list = list(c(-1,0), c(0, 2)),
-                                     x_interval_text = list(c(-1.25), c(1.75)), # 
-                                     text_list = list("Baseline", "Cue Period"),
-                                     scl = 1.01, # percent for lines above original ylim values
-                                     x_scl = 0.0025, # percent for gap in lines
-                                     txt_adjust = 0.03, # percent text is above line
-                                     txt_size = 3,
-                                     col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
-}
-
-# align plots
-fig <- do.call("grid.arrange", c(plot.f4, nrow = 2))
-
-# save
-setwd("~/Desktop/NIMH Research/Photometry/fLME_methods_paper/Figures/Science-Fig4G")
-ggsave( "Short_Delay_Trial_Effect with Session.pdf",
-        plot = fig,
-        width = 8,
-        height = 8)
-
-###########################
-# photobleaching analysis with total licks
-###########################
-dat2 <- dat %>% as_tibble() %>%
-  dplyr::filter(delay == 0, # use only short sessions
-                cs == 1, # CS+ trials only
-                session == -1 # last session of short-delay
-                ) %>% 
-  as.data.frame()
-dat2$session <- as.factor(dat2$session)
-
-# average number of trials per session for each animal and session
-num_trial <- dat2 %>% as_tibble() %>%
-  dplyr::group_by(session, id) %>%
-  dplyr::mutate(maxTrial = max(trial)) %>%
-  summarise(m = mean(maxTrial))
-
-dat2 <- left_join(dat2, num_trial, by = c("id", "session"))
-dat2$trial <- (dat2$trial - 1) / (dat2$m-1) # standardize trial to be [0,1]
-
-set.seed(1)
 
 #########################################################################################
 # best model
@@ -483,9 +367,7 @@ simPoint_mean <- simPoint %>%
 simPoint <- left_join(simPoint, simPoint_mean, by = "id")
 
 # # animal/session names
-# sim_dat$id = paste('Animal', as.numeric(as.factor(sim_dat$id)))
 sim_dat$session_name = paste('Session', as.numeric(as.factor(sim_dat$session)))
-# simPoint$id = paste('Animal', as.numeric(as.factor(simPoint$id)))
 simPoint$session_name = paste('Session', as.numeric(as.factor(simPoint$session)))
 
 library(latex2exp)
@@ -499,14 +381,10 @@ fig <-
   # mixed model individual curves
   geom_line(stat="smooth", method = "lm", formula = y ~ x,
             size = 1,
-            #linetype = 5,
             color = "black",
             alpha = 0.75) +
   geom_point(data = simPoint, aes(x = trial, y = point),
              fill = "black", alpha = 0.75, pch = 21, size = 2) + # aes(fill = id), color = "black",
-  # geom_line(aes(group = id, color = id, x = x, y = fitted),
-  #           size = 1) +
-  # geom_hline(yintercept=0, linetype="dashed", color = "black") +
   geom_hline(data = simPoint,
              aes(yintercept=m), linetype="dashed", color = "black") +
   theme(axis.text = element_text(size=10, face="bold"),
@@ -544,14 +422,10 @@ fig <-
   # mixed model individual curves
   geom_line(stat="smooth", method = "lm", formula = y ~ x,
             size = 1,
-            #linetype = 5,
             color = "black",
             alpha = 0.75) +
   geom_point(data = simPoint[simPoint$session == -1,], aes(x = trial, y = point),
              fill = "black", alpha = 0.75, pch = 21, size = 2) + # aes(fill = id), color = "black",
-  # geom_line(aes(group = id, color = id, x = x, y = fitted),
-  #           size = 1) +
-  # geom_hline(yintercept=0, linetype="dashed", color = "black") +
   geom_hline(data = simPoint[simPoint$session == -1,],
              aes(yintercept=m), linetype="dashed", color = "black") +
   theme(axis.text = element_text(size=10, face="bold"),
@@ -628,7 +502,6 @@ plot.f4[[prdtr-1]] <- interval_label(fig = plot.f4[[prdtr-1]],
                                      col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
 
 # align plots
-# plot.f4 <- plot_adjust(plot.f4)
 fig <- do.call("grid.arrange", c(plot.f4, nrow = 1))
 
 # save
