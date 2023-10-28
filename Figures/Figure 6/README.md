@@ -1,5 +1,5 @@
 # Figure 5
-- Code used to generate figure 5 is in "science_paper_Fig4G-I.R"  -- Using this file requires one to download data from the repository listed below (same data as Figure 3).
+- Code used to generate figure 5 is in "science_paper_Fig4G-I Inset.R"  -- Using this file requires one to download data from the repository listed below (same data as Figure 3).
 - The remaining PDF files are outputted by the R file above and are the final versions of the figures used in the manuscript.
 
 # Data
