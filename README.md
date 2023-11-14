@@ -8,5 +8,5 @@ The `fastFMM` R package is now available on `CRAN` and can be downloaded within 
 install.packages("fastFMM")
 ```
 
-The development version of the `fastFMM` R package can be downloaded at: https://github.com/gloewing/fastFMM
+For more information see the `fastFMM` R package repo: https://github.com/gloewing/fastFMM
 
