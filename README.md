@@ -20,6 +20,6 @@ For the usage and a tutorial on package functions, please refer to [fastFMM's Vi
 
 ### Calling `fastFMM` from Python
 
-See 'python_fastFMM_vignette.py' for a brief example of how to `fastFMM` on Python. We are working on more documentation. This assumes the package (and all its dependenices) have already been installed. Even if you intend to use the package purely within Python, it may be helpful to first install `fastFMM` from within RStudio to ensure all package dependenices are installed automatically.
+See 'python_fastFMM_vignette.py' in the Tutorials folder for a brief example of using `fastFMM` on Python through the Python package `rpy2`. We are working on more documentation. The tutorial assumes the `fastFMM` R package (and all its dependenices), and the `rpy2` Python package have already been installed.  Even if you intend to use the package purely within Python, it may be helpful to first install `fastFMM` from within RStudio to ensure all package dependenices are installed automatically.
 
 
