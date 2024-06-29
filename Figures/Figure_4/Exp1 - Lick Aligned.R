@@ -186,9 +186,7 @@ L <- length(out_index)
 nknots_min <- round(L/2)
 cov_idx <- seq(1:ncol(dat))[-out_index] # indices of covariates
 
-#########################################################################################
-# create AUC variables for EDA
-
+# create AUC variables 
 photo_dat <- dat[, -cov_idx] # photometry data
 pre_lick_reward_period_samps <- round(target_Hz * pre_reward_period_length) # samples of pre_cue period
 reward_period_max_idx <- round( (pre_reward_period_length + reward_period_length) * target_Hz ) # max_idx of post_cue period
@@ -226,107 +224,240 @@ iri_95 <- quantile(dat$iri, probs = 0.95)
 ########################################################
 # flMM Modeling
 ########################################################
-
 # ---------------------------------------------------
-# IRI
+# Trial Number
 # ---------------------------------------------------
 # compare different random effect structures
 # best model
-DA_iri <- fui(photometry ~ iri + 
-                  (lick_time | id/session), 
+DA_trial <- fui(photometry ~ session + trial +
+                   (lick_time | id/session), 
+                   data = dat,  
+                   parallel = TRUE,
+                   nknots_min = nknots_min,
+                   subj_ID = "id")
+#AIC/BIC: 13360.91 13421.66
+
+# model 2
+DA_trial2 <- fui(photometry ~ session + trial +
+                  (1 | id/session), 
                 data = dat,  
                 parallel = TRUE,
                 nknots_min = nknots_min,
                 subj_ID = "id")
-#AIC/BIC: 13362.52 13417.19
-
-# model 2
-DA_iri2 <- fui(photometry ~ iri + 
-                   (1 | id/session), 
-                 data = dat,  
-                 parallel = TRUE,
-                 nknots_min = nknots_min,
-                 subj_ID = "id")
-#AIC/BIC: 13472.49 13502.86
+#AIC/BIC: 13471.74 13508.19
 
 # model 3
-DA_iri3 <- fui(photometry ~ iri + 
-                   (iri | id/session), 
+DA_trial3 <- fui(photometry ~ session + trial +
+                   (trial | id/session), 
                  data = dat,  
                  parallel = TRUE,
                  nknots_min = nknots_min,
                  subj_ID = "id")
-#AIC/BIC: 13367.15 13421.83
+#AIC/BIC: 13373.19 13433.93
 
 # compare model fits
-rbind(colMeans(DA_iri$aic[reward_period_idx,]),
-      colMeans(DA_iri2$aic[reward_period_idx,]),
-      colMeans(DA_iri3$aic[reward_period_idx,]))
+rbind(colMeans(DA_trial$aic[reward_period_idx,]),
+      colMeans(DA_trial2$aic[reward_period_idx,]),
+      colMeans(DA_trial3$aic[reward_period_idx,]))
 
 # best model is model 1
-fit_dat <- DA_iri
+fit_dat <- DA_trial
 
+###############
 # plot
+###############
+
 plot.f4 <- list()
 for(prdtr in 2:nrow(fit_dat$betaHat)){
   plot.f4[[prdtr-1]] <- plot.FUI(r = prdtr, 
-                                 Hz = target_Hz, 
-                                 align = tm,
-                                 var_name = c("Intercept", "Inter-reward Interval Association"))#,
+                               Hz = target_Hz, 
+                               align = tm,
+                               x_lab = "Time from Lick (s)",
+                               ylim = list(c(-0.2903911, 0.5642675), c(-1.9018083, 0.7451631))[[prdtr-1]],
+                               var_name = c("Intercept", "Session Number Association", "Trial Number Association"))#,
   
   # add interval names
   plot.f4[[prdtr-1]] <- interval_label(fig = plot.f4[[prdtr-1]],
-                                       x_interval_list = list(c(-2,-0.5), c(-0.5, 1)),
-                                       x_interval_text = NULL,
-                                       text_list = list("Baseline", "Reward Period"),
-                                       scl = 1.01, # percent for lines above original ylim values
-                                       x_scl = 0.0025, # percent for gap in lines
-                                       txt_adjust = 0.03, # percent text is above line
-                                       txt_size = 3,
-                                       col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
+                                     x_interval_list = list(c(-2,-0.5), c(-0.5, 1)),
+                                     x_interval_text = NULL,
+                                     text_list = list("Baseline", "Reward Period"),
+                                     scl = 1.01, # percent for lines above original ylim values
+                                     x_scl = 0.0025, # percent for gap in lines
+                                     txt_adjust = 0.03, # percent text is above line
+                                     txt_size = 3,
+                                     ylim = list(c(-0.2903911, 0.5642675 * 1.01), c(-1.9018083, 0.7451631 * 1.035))[[prdtr-1]],
+                                     col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
 }
 
+# pre/post lick
+plot.f4[[1]] <- interval_label(fig = plot.f4[[1]],
+                               x_interval_list = list(c(-0.5, 0), c(0, 1)),
+                               text_list = list("Pre-lick   ", "Post-lick"),
+                               scl = 1.01, # percent for lines above original ylim values
+                               x_scl = 0.005, # percent for gap in lines
+                               txt_adjust = -0.0625, # percent text is above line
+                               txt_size = 2.5,
+                               col_seq = c("#0868ac", "#0868ac"),
+                               y_val = 0.535, 
+                               alpha = 0.75) +
+  ggplot2::coord_cartesian(ylim = c(-0.2, layer_scales(plot.f4[[1]])$y$range$range[2]), #c(-0.2, 0.5642675 * 1.05),
+                           xlim = c(-2, 2.5))
+
+plot.f4[[2]] <- interval_label(fig = plot.f4[[2]],
+                               x_interval_list = list(c(-0.5, 0), c(0, 1)),
+                               text_list = list("Pre-lick   ", "Post-lick"),
+                               scl = 1.01, # percent for lines above original ylim values
+                               x_scl = 0.005, # percent for gap in lines
+                               txt_adjust = -0.0625, # percent text is above line
+                               txt_size = 2.5,
+                               col_seq = c("#0868ac", "#0868ac"),
+                               y_val = 0.6625, 
+                               alpha = 0.75) +
+                ggplot2::coord_cartesian(ylim = c(-1.6, layer_scales(plot.f4[[2]])$y$range$range[2]),
+                                         xlim = c(-2, 2.5))
+
 # align plots
-figs <- list()
-figs[[1]] <- plot.f4[[1]]
+plot.f <- plot.f4
+plot.f <- plot_adjust(plot.f)
+fig <- do.call("grid.arrange", c(plot.f, nrow = 2))
+
+# save
+setwd("/Users/loewingergc/Desktop/NIMH Research/Photometry/fLME_methods_paper/Figures/Science-Exp1/Final/Lick Aligned")
+ggsave( "Lick-Aligned Trial Effect Pre-Post.pdf",
+        plot = fig,
+        width = 4,
+        height = 8)
+
+############################################################################################################
+# plot average signal and add to plot above
+# average all sessions
+sess_vec <- 1:12
+
+# original data
+mean_dat0 <- dat %>% 
+  as_tibble() %>%
+  pivot_longer(cols = starts_with("photometry."),
+               names_to = "time",
+               names_prefix = "photometry.",
+               values_to = "value") %>% 
+  dplyr::filter(session_orig %in% sess_vec) %>%
+  dplyr::mutate(time = round(as.numeric(time) / target_Hz - pre_min_tm, 2)) %>%
+  group_by(time, id) %>%
+  dplyr::summarise(photo_mean = mean(value, na.rm = TRUE)) %>% 
+  # average across animals so se is uncertainty w.r.t animal averages
+  group_by(time) %>%
+  dplyr::summarise(photometry = mean(photo_mean, na.rm = TRUE),
+                   y_low = mean(photo_mean, na.rm = TRUE) - sd(photo_mean) / sqrt(n()), # +/- sem
+                   y_high = mean(photo_mean, na.rm = TRUE) + sd(photo_mean) / sqrt(n()),
+                   sem = sd(photo_mean) / sqrt(n()) )
+
+# trick variables to use plotting function to just plot the mean
+mean_signal <- DA_trial
+mean_signal$betaHat[2,] <- mean_dat0$photometry
+diag(mean_signal$betaHat.var[,,2]) <- mean_dat0$sem
+mean_signal$qn <- rep(0,3)
+
+prdtr <- 2
+fit_dat <- mean_signal
+plot.f4[[3]] <- plot.FUI(r = prdtr, 
+                               Hz = target_Hz, 
+                               align = tm,
+                               x_lab = "Time from Lick (s)",
+                               ylim = c(-0.5,6.25),
+                               var_name = c("Intercept", "Average Signal", "Trial Number Association")) + 
+  ylab(latex2exp::TeX("Photometry Signal  $(\\Delta F / F)$" ))
+
+# add interval names
+plot.f4[[3]] <- interval_label(fig = plot.f4[[3]],
+                                     x_interval_list = list(c(-2,-0.5), c(-0.5, 1)),
+                                     x_interval_text = NULL,
+                                     text_list = list("Baseline", "Reward Period"),
+                                     scl = 1.01, # percent for lines above original ylim values
+                                     x_scl = 0.0025, # percent for gap in lines
+                                     txt_adjust = 0.03, # percent text is above line
+                                     txt_size = 3,
+                                     col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
+
+
+# align plots
+plot3 <- plot_adjust(list(plot.f4[[3]]), nrows = 1)
+plot.f4 <- plot_adjust(plot.f4, nrows = 1)
 fig <- do.call("grid.arrange", c(plot.f4, nrow = 1))
 
 # save
 setwd("/Users/loewingergc/Desktop/NIMH Research/Photometry/fLME_methods_paper/Figures/Science-Exp1/Final/Lick Aligned")
-ggsave( "Lick-Aligned IRI Effect.pdf",
+ggsave( "Lick-Aligned Trial Effect Pre-Post plus Avg.pdf",
         plot = fig,
+        width = 12,
+        height = 4)
+ggsave( "Lick-Aligned Avg.pdf",
+        plot = plot3,
         width = 4,
         height = 4)
 
 
-# plot
+
+######################
+# session-level plot
+######################
 plot.f4 <- list()
-for(prdtr in 1:nrow(fit_dat$betaHat)){
-  plot.f4[[prdtr]] <- plot.FUI(r = prdtr, 
-                                 Hz = target_Hz, 
-                                 align = tm,
-                               x_lab = "Time from Lick (s)",
-                                 var_name = c("Intercept: Mean Signal", "Inter-reward Interval Association"))#,
+sess_num <- 6
+cnt <- 0
+for(t in 1:sess_num){
+  DA_trial <- fui(photometry ~ trial +
+                    (lick_time | id), 
+                  data = dat[dat$session_orig == t,],  
+                  parallel = TRUE,
+                  nknots_min = nknots_min,
+                  subj_ID = "id")
   
-  # add interval names
-  plot.f4[[prdtr]] <- interval_label(fig = plot.f4[[prdtr]],
-                                       x_interval_list = list(c(-2,-0.5), c(-0.5, 1)),
-                                       x_interval_text = NULL,
-                                       text_list = list("Baseline", "Reward Period"),
-                                       scl = 1.01, # percent for lines above original ylim values
-                                       x_scl = 0.0025, # percent for gap in lines
-                                       txt_adjust = 0.03, # percent text is above line
-                                       txt_size = 3,
-                                       col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
+  fit_dat <- DA_trial
+  for(prdtr in 1:nrow(fit_dat$betaHat)){
+    plot.f4[[cnt+prdtr]] <- plot.FUI(r = prdtr, 
+                                     Hz = target_Hz, 
+                                     align = tm,
+                                     x_lab = "Time from Lick (s)",
+                                     #ylim = list(c(-0.2903911, 0.5642675), c(-1.9018083, 0.7451631))[[prdtr-1]],
+                                     var_name = c(paste0("Intercept: Session ", t), "Trial Number Association"))#,
+    
+    # add interval names
+    plot.f4[[cnt+prdtr]] <- interval_label(fig = plot.f4[[prdtr+cnt]],
+                                           x_interval_list = list(c(-2,-0.5), c(-0.5, 1)),
+                                           x_interval_text = NULL,
+                                           text_list = list("Baseline", "Reward Period"),
+                                           scl = 1.01, # percent for lines above original ylim values
+                                           x_scl = 0.0025, # percent for gap in lines
+                                           txt_adjust = 0.03, # percent text is above line
+                                           txt_size = 3,
+                                           #ylim = list(c(-0.2903911, 0.5642675 * 1.01), c(-1.9018083, 0.7451631 * 1.035))[[prdtr-1]],
+                                           col_seq = c("#ca0020", "#0868ac", "#E69F00", "#525252") )
+    
+  }
+  cnt <- cnt + 2 # counter for plot
+  rm(DA_trial)
 }
 
 # align plots
-figs <- list()
-fig <- do.call("grid.arrange", c(plot.f4, nrow = 1))
+plot.f <- plot.f4
+#plot.f <- plot_adjust(plot.f)
+fig <- do.call("grid.arrange", c(plot.f4, nrow = sess_num))
 
 # save
 setwd("/Users/loewingergc/Desktop/NIMH Research/Photometry/fLME_methods_paper/Figures/Science-Exp1/Final/Lick Aligned")
-ggsave( "Lick-Aligned IRI.pdf",
+ggsave( "Lick-Aligned Trial Effect Session-wise.pdf",
         plot = fig,
         width = 8,
-        height = 4)
+        height = 24)
+
+
+############################################
+# complex model for timing
+# random slope model
+start.time <- Sys.time()
+DA_complex <- fastFMM::fui(formula = photometry ~ session + trial + iri + lick_time + licks +
+                          (session + trial + iri + lick_time + licks| id), 
+                          data = dat,  
+                          nknots_min = nknots_min,
+                          parallel = TRUE,
+                          subj_ID = "id")
+Sys.time() - start.time
