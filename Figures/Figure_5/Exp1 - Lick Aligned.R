@@ -449,3 +449,15 @@ ggsave( "Lick-Aligned Trial Effect Session-wise.pdf",
         width = 8,
         height = 24)
 
+
+############################################
+# complex model for timing
+# random slope model
+start.time <- Sys.time()
+DA_complex <- fastFMM::fui(formula = photometry ~ session + trial + iri + lick_time + licks +
+                          (session + trial + iri + lick_time + licks| id), 
+                          data = dat,  
+                          nknots_min = nknots_min,
+                          parallel = TRUE,
+                          subj_ID = "id")
+Sys.time() - start.time
