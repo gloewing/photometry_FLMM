@@ -201,7 +201,7 @@ dat$id <- as.numeric(as.factor(dat$id)) # make 1:n
 
 # number of knots
 L <- ncol(dat[, (grep(paste0("^", "photometry"), colnames(dat)))])
-nknots_min <- round(L/2) # L = 100
+nknots_min <- round(L/4) # L = 100
 
 # order data
 dat_photo <- dat[order(dat$id, dat$session, dat$trial, decreasing = FALSE), ] #%>%
@@ -597,7 +597,7 @@ p1_combined <-
   # fig +
   geom_point(aes(x=example_time, y=b_val), size = 3, colour=col_highlight) +
   theme(plot.margin = unit(c(5.5, 5.5, 5.5 ,25), "pt")) +
-  geom_segment(aes(x =example_time, y = b_val, xend = example_time, yend = -2.475),
+  geom_segment(aes(x =example_time, y = b_val, xend = example_time, yend = -2.4),
                colour = col_highlight,
                linetype = "dashed",
                size = 0.75)  + 
@@ -609,10 +609,10 @@ p1_combined <-
                   ylim = plot.f4[[2]]$coordinates$limits$y,  clip = 'off') + # 
   scale_x_continuous(breaks = c(0, 5),
                      labels = c(0, 5)) +
-  annotate(geom = "text", x = -3.5, y = b_val * 0.99, 
-           label =  round(b_val,2),
+  annotate(geom = "text", x = -3.5, y = b_val * 0.96, 
+           label =  round(b_val,1),
            color = col_highlight, size = 4) +
-  annotate(geom = "text", x = example_time-0.2, y = -2.7, 
+  annotate(geom = "text", x = example_time-0.2, y = -2.5, # y= -2.7
            label =  example_time,
            color = col_highlight, size = 4) +
   geom_segment(aes(x =example_time, y = b_val, xend = 8.5, yend = b_val* 1.5),
