@@ -1,5 +1,5 @@
 # written by Gabe Loewinger 4/4/23
-# simulations using Nature paper's data for data-driven sims
+# simulations using Science paper's data for data-driven sims
 # this R code is saved in: /gpfs/gsfs8/users/loewingergc/photometry_fglmm/code
 # reward period lengthened
 list.of.packages <- c("Rfast")
