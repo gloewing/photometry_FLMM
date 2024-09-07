@@ -19,7 +19,7 @@ install.packages("fastFMM", dependencies = TRUE)
 For the usage and a tutorial on package functions, please refer to [fastFMM's Vignette](https://rpubs.com/gloewinger/1110512). 
 
 ### Photometry Analysis Guide
-$\textbf{Part 1}$: [Binary Variables](https://rpubs.com/gloewinger/1159094)
+$\textbf{Part 1}$: [Binary Variables](https://rpubs.com/gloewinger/1159094) \\
 Part 2: Testing changes within a trial between 2 periods (baseline vs. cue period) – https://rpubs.com/gloewinger/1159127
 Part 3: Associations with continuous variables – https://rpubs.com/gloewinger/1159129
 Part 4: Testing Factor Variables – https://rpubs.com/gloewinger/1159411
