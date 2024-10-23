@@ -1,0 +1,244 @@
+---
+title: "Photometry FLMM Guide Part I : Data Formating and Binary Variables"
+author: "Gabriel Loewinger, Erjia Cui"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  toc: yes
+  pdf_document: null
+vignette: "%\\VignetteIndexEntry{fastFMM Vignette} %\\VignetteEncoding{UTF-8} %\\VignetteEngine{knitr::rmarkdown}
+  \n"
+---
+  
+```{r setup, echo = FALSE, eval = FALSE}
+knitr::opts_chunk$set(comment = "#>", warning=FALSE, message=FALSE)
+library(fastFMM)
+output: pdf_document
+# output: rmarkdown::html_vignette
+```
+
+```{r, message=FALSE, echo=FALSE, results='hide', include = FALSE, warning=FALSE}
+# Thanks to Yihui Xie for providing this code
+# #  %\VignetteEngine{knitr::rmarkdown} 
+# %\VignetteEngine{rmarkdown::render}
+suppressWarnings( library(knitr) )
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Introduction
+
+`fastFMM` is a fast toolkit for fitting Functional Linear Mixed Models (FLMM). Instead of analyzing summary measures of photometry signals (e.g., Area-Under-the-Curve, peak amplitude), FLMM allows you to analyze the relationship between photometry signals and experimental/behavioral variables (e.g., CS+/CS-, total presses, treatment/control groups) at each time-point of the trial. Therefore, FLMM provides a unique opportunity to reveal potentially time-varying signal changes that are obscured by analyzing only summary measures (e.g., see [Loewinger et al. (2023)](https://www.biorxiv.org/content/10.1101/2023.11.06.565896v1)). Although our package can fit the wider class of generalized functional mixed models, this guide focuses on FLMM. 
+  
+# Installation
+
+The CRAN version of `fastFMM` can be downloaded by executing the following command on your R console:
+  
+```{r, eval=FALSE}
+install.packages("fastFMM", dependencies = TRUE)
+```
+
+To load the package use:
+```{r}
+library(fastFMM) 
+```
+
+# Tutorial Guide
+
+We start by analyzing trial-level photometry signals (each trial is a 5 second $\Delta F/ F$ signal) collected from multiple animals, on multiple sessions (each of which contains multiple trials). You can pre-process your data in any programming language you like, but it is recommended to save the processed dataset as a CSV file to then read into R.
+
+## Data Formating
+
+For demonstration purpose, we have pre-processed a dataset stored as `binary.csv`. This data was taken from Test 4 of [Jeong et al., 2022](https://www.science.org/doi/full/10.1126/science.abq6740) and we thank the authors for generously making their data public and helping us analyze it.
+
+Let's load the data and take a look at its structure of the first several columns. Please make sure to either set your working directory in R first using `setwd()` function, or specify the file pathname in the `read.csv('path/to/file/photometry_data.csv')`. 
+
+```{r}
+dat = read.csv("binary.csv") # read in data
+head(as.matrix(round(dat[,1:10], 3)))
+```
+
+The dataset pools trials across animals, and sessions. Each row is a single trial and contains both experimental information and the values of the photometry signal at each of 125 trial timepoints. The first 4 columns of this dataset include the subject ID ($\texttt{id}$), session number ($\texttt{session}$), trial number ($\texttt{trial}$), and cue type CS+/CS- ($\texttt{cs}$). Since the first 6 trials in the dataset are all from animal 3 on session 1, the values of the $\texttt{id}$ and $\texttt{session}$ entry are the same for these rows. If we looked further down in the dataset, we would see other values in the $\texttt{id}$ and $\texttt{session}$ columns. Note that the actual ordering of these first four columns does not matter, that is, it is not necessary to reorder the data for the analysis. The column $\texttt{cs}$ is a covariate of interest and indicates whether the trial was a CS+ trial ($cs = 0$), or a CS- trial ($cs = 1$). The remaining columns contain the photometry signal values (e.g., $\Delta F / F$). We have 125 photometry values stored in columns $\texttt{photometry.1}$, $\texttt{photometry.2}$, ..., $\texttt{photometry.125}$ because the trials are 5 seconds long and the signal was downsampled to 25 Hz. 
+
+With such data structures, we can specify an FLMM using the `fui()` function. The function assumes that whatever character string used to label the columns for the photometry signal preceeding the "." only occurs in columns corresponding to the signal. For example, if we specified a model `fui(photometry ~ cue + (1 | id), ...`, then all columns starting with 'photometry.', will be interpreted as the photometry signal (here we use $\texttt{photometry.}$, but we could have used anything else, such as $\texttt{Y.}$). For that reason we recommend not naming other variables in your dataset using names that contain the same characters as the response(e.g., $\texttt{photometryAUC}$). Similarly, please do not name other variables with a period '.'. A safe variable name could be $\texttt{photo_AUC}$ to avoid any issues with the analysis code.
+
+Alternatively, instead of relying on the column names, we can save the $N \times L$ matrix associated with our photometry signals as a variable of a dataframe using the `I()` function. The `fui()` function accepts either format style.
+
+## Model Fitting and Function Arguments
+
+The `fui()` function syntax begins with the functional outcome $\texttt{photometry}$ followed by $\texttt{~}$, then the fixed-effect covariates (here we only have binary one: $\texttt{cs}$), and the random effects inside the parentheses: (e.g., $\texttt{(1 | id)}$). The motivation of including random effects is to model the variability of photometry signal profiles across animals and to model the dependence arising $across$ trials within the same animals. To the left of the $\texttt{|}$ are the covariates included for random-effects (here a $\texttt{1}$ means only a random intercept is included. But if we wanted a random-slope for $\texttt{cs}$, we would write $(\texttt{cs | id})$. To the right of the $\texttt{|}$ indicates the cluster or grouping variable. For us, this will usually be animal $\texttt{id}$. We specify the name of our data object in $\texttt{R}$, which we have just called `dat`. The syntax is based off of the `lmer()` function in the `lme4` package. Finally, we set `parallel = TRUE` to parallelize the function. This often substantially speeds up the code. It is not necessary though, and will not influence the model fit.
+
+Let's explore a few simple questions to understand how we might go about conducting FLMM analyses similar to common analyses like t-tests, correlations, repeated-measures ANOVAs, etc.
+
+## Binary covariate: Akin to FLMM version of a paired t-test: 
+
+We begin by analyzing data from a Pavlovian task in which a reward-predictive CS+ and a CS- (not predictive of reward). We can compare the mean differences between CS+/CS- in photometry signal magnitude at each trial timepoint. This is akin to 1) taking an average trace for CS+ trials, 2) calculating an average trace for CS- trials, 3) taking the difference (at each timepoint) between the two average traces, and 3) examining where the difference in the average trace is significantly different than 0 (i.e., trial timepoints on CS+ trials in which the mean dF/F was significantly different than the mean dF/F at those timepoints on CS- trials).
+
+Let's start with a simple model, which can be viewed as the functional version of a paired t-test: we fit models with the binary $\texttt{cs}$ covariate as the only predictor. This gives us a trial timepoint-by-timepoint test of whether there are significant differences in the photometry signal between CS+ and CS- trials. The figure output will show whether the mean signal was significantly higher/lower on CS+ trials than on CS- trials at trial timepoint 1, 2, 3, etc.
+
+We can fit a model and plot the output in 2 lines of code. Pretty easy, right?
+
+```{r, message=FALSE, echo=TRUE, results='hide', include = TRUE}
+mod = fui(photometry ~ cs + (cs | id), data = dat, parallel = TRUE) # fit random slope model
+plot_fui(mod) # plot the results
+```
+
+Typically, we will want to compare a number of models that compare CS+ trials ($\texttt{cs}=0$) to CS- trials ($\texttt{cs}=1$) before inspecting the results. By comparing models with different random effect specifications (that may capture different dependence structures across trials, and heterogeneity patterns across animals), we can identify which one yields a superior fit (based on AIC, BIC or other metrics), and hopefully captures trends in the data and quantify uncertainty better.
+
+Let's go through a simple example. Let's fit one model with an animal-specific random intercept, and a second model with both an animal-specific random intercept and random slope. 
+
+Model 1:
+$$
+\begin{aligned} 
+& \mathbb{E}[Y_{ij}(s) \mid X_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {X}_{ij}{\beta}_1(s) + {\gamma}_{0,i}(s)  \notag 
+\end{aligned} 
+$$ 
+Model 2:
+$$
+\begin{aligned} 
+& \mathbb{E}[Y_{ij}(s) \mid X_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s) + {X}_{ij}\left[{\beta}_1(s) + {\gamma}_{1,i}(s) \right ] \notag 
+\end{aligned} 
+$$ 
+```{r, message=FALSE, echo=TRUE, results='hide', include = TRUE}
+# fit two models
+mod1 = fui(photometry ~ cs + (1 | id), data = dat, parallel = TRUE) # random intercept model
+mod2 = fui(photometry ~ cs + (cs | id), data = dat, parallel = TRUE) # random slope model
+```
+
+To avoid biasing our model selection, let's compare the two models' AIC/BIC values and only inspect the output of the selected model. Below we see that model 2 (the model shown above) yields a superior fit (lower AIC and BIC values). Therefore, we will use that model for inference.
+
+```{r}
+# average pointwise model fits
+colMeans(mod1$aic) # worse model: higher AIC/BIC
+colMeans(mod2$aic) # superior model: lower AIC/BIC
+```
+
+Now that we have chosen a model, let's plot the output again but include a few extra function arguments in the `plot_fui()` to make the plots more readable. 
+
+```{r}
+# plot model with best model fit (AIC/BIC)
+model_results = plot_fui(mod2, 
+                   xlab = "Time (sec)", # label x-axis
+                   x_rescale = 25, # rescale x-axis to be in sec - photometry sampled at 25 Hz 
+                   align_x = 2, # align to time of cue onset
+                   title_names = c("Intercept: Mean Signal CS+", 
+                                   "Mean Difference: CS- vs. CS+"),
+                   return = TRUE) # use return = TRUE to save coefficient info
+```
+
+The plot on the left is the functional intercept, $\beta_0(s)$. Often this is not of scientific interest but because we coded CS+ trials as $X_{ij} = 0$, and CS- as $X_{ij} = 1$, the functional intercept has the interpretation as "the mean signal on CS+ trials." We are probably more interested in $differences$ between CS+/CS- but we can see there is a statistically significant increase in the mean signal on CS+ trials for the first second after cue onset (in the interval: 0s - 1s) relative to trial baselines (the exact interpretation depends on how we normalize our signal, which we discuss later). This will yield something comparable to just taking an average trace on CS+ trials, but the advantage of this is it shows us where the signal is significantly different from 0.
+
+The plot on the right is the estimated functional coefficient $\widehat{\beta}_1(s)$. This plot shows the difference between CS- and CS+ trials at each corresponding trial timepoint. Time intervals where the light grey confidence bands do not contain 0 indicate that there is a statistically significant difference in the mean signal magnitude on CS- trials relative to CS+ trials. Because we coded CS+ trials as $X_{ij} = 0$, and CS- as $X_{ij} = 1$, a negative coefficient estimate indicates CS+ has a greater magnitude. Thus, the plot shows a significantly higher mean signal on CS+ trials from 0 to 2 seconds after cue onset. This is conceptually similar to fitting a separate paired t-test on the photometry signal values (CS+ vs. CS-) at each trial timepoint. However, FLMM takes into account the order of the data since they were collected over time, thus providing a more reliable estimate. Moreover, the joint confidence provide a type of multiple comparisons correction for inspecting estimates at every timepoint. 
+
+Figure 6C-D from our our paper, [Loewinger et al., 2023](https://www.biorxiv.org/content/10.1101/2023.11.06.565896v1), illustrates this point, albeit using a different analysis. In this experiment, the binary variable was the length of the delay (short vs. long) between cue onset and reward instead of CS+/CS-. The intuition is, however, the same. Figure D shows how the $\widehat{\beta}_1(s)$ coefficient in a FLMM with only a binary covariate is conceptually similar to just taking the average dF/F traces for CS+ trials (or long delay trials here) and CS- (or short delay trials here) and subtracting them.
+
+```{r figurename, echo=FALSE, out.width = '95%'}
+knitr::include_graphics("Delay Effect Inset Combined.pdf")
+```
+
+# Coefficient Interpretation
+
+The rationale for the coefficient estimates interpretations above (and more generally) can be understood with a couple simple algebraic steps.
+
+First, remember that we are modeling $\mathbb{E}[Y_{ij}(s) \mid X_{ij}, \boldsymbol{\gamma}_i(s)]$, the average photometry signal for animal $i$, on trial $j$ at trial timepoint $s$ only as a function of whether a given trial is a CS+ ($X_{ij}=0$) or a CS- ($X_{ij}=1$):
+
+$$
+\begin{aligned} 
+& \mathbb{E}[Y_{ij}(s) \mid X_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s) + {X}_{ij}\left[{\beta}_1(s) + {\gamma}_{1,i}(s) \right ]. \notag 
+\end{aligned} 
+$$ 
+We find the $marginal$ interpretation appealing for our functional fixed effect coefficients in photometry experiments, so observe that the above model can also be interpreted marginally with respect to the functional random effects, $\boldsymbol{\gamma}(s)$ through the induced marginal model:
+
+$$
+\begin{aligned} 
+& \mathbb{E}_{\boldsymbol{Y}}[Y_{ij}(s) \mid X_{ij}] =\mathbb{E}_{\boldsymbol{\gamma}_i}[ \mathbb{E}_{\boldsymbol{Y}}[Y_{ij}(s) \mid X_{ij}, \boldsymbol{\gamma}_i(s)] \mid X_{ij}] =  \beta_0(s) + {X}_{ij} {\beta}_1(s). \notag 
+\end{aligned} 
+$$ 
+The above follows by recalling the model assumption that $\mathbb{E}[\boldsymbol{\gamma}_i] = \mathbb{E}[\boldsymbol{\gamma}_i \mid X_{ij}] = \boldsymbol{0}$.
+
+## Functional Intercept Interpretation
+
+Now the reason the functional intercept, $\beta_0(s)$, has the interpretation as the mean signal on CS+ trials is because we coded the CS variable (denoted as $X_{ij}$) to be $X_{ij} = 0$ for CS+ trials. In linear models, the intercept will have the interpretation as the mean outcome when all model covariates are equal to 0. Since we only have one covariate here (CS+/CS-), and that covariate equals 0 on CS+ trials, the model conveniently yields this interpretation. We can see this by plugging $X_{ij} = 0$ into our model, and seeing how the mean photometry signal on CS+ trials is the coefficient attained when plugging in $X_{ij} = 0$:
+
+$$
+\begin{align} 
+\mathbb{E}[Y_{ij}(s) \mid X_{ij} = 0] &= \beta_0(s) + 0*{\beta}_1(s)  \\
+&=\beta_0(s).
+\end{align} 
+$$
+
+## Functional Slope Interpretation
+
+The reason the functional slope, $\beta_1(s)$, has the interpretation as the mean difference between CS+ and CS- trials can be seen through a similar exercise:
+
+$$
+\begin{align} 
+&\mathbb{E}[Y_{ij}(s) \mid X_{ij} = 1] - \mathbb{E}[Y_{ij}(s) \mid X_{ij} = 0] \\
+&=\beta_0(s) + 1*{\beta}_1(s)  - \left [ \beta_0(s) + 0*{\beta}_1(s) \right ] \\
+&=\beta_1(s).
+\end{align} 
+$$
+
+Besides the notation for modeling the signal at every trial timepoint, these simple algebraic steps are essentially the same steps used in interpreting coefficients in linear regression. Remember, in FLMM models (i.e., in selecting the covariates and random effects to include), our job is to specify a model for how the signal changes across different covariate values (e.g., $across$ conditions, trials, sessions, treatment groups, etc.). The evolution of the signal $within$ a given trial (across trial timepoints) is handled implicitly by our software: it does $not$ need to be modeled explicitly in the model specification with fixed or random effects.
+
+# Exporting Results
+If you want to export the results and make figures yourself, we can adjust an argument in the `plot_fui()` to save the results and then look at the objects stored in the results. We did this above when we set `return = TRUE` and assigned the `plot_fui()` results to the $\texttt{model_results}$ object.
+
+The $\texttt{model_results}$ object now contains two dataframes, one with all the data needed to construct the figure for $\widehat{\beta}_0(s)$ and one for $\widehat{\beta}_1(s)$. Each one contains the data for both joint and pointwise CIs as well as the coefficient estimates. It will have 125 rows since we have 125 datapoints in the photometry signal on each trial. Let's look at the dataframe for $\widehat{\beta}_1(s)$ (for the cue variable $\texttt{cs}$).
+
+```{r, results='hide'}
+head(model_results$cs) # show structure of coefficients
+```
+
+
+```{r, message=FALSE, echo=FALSE, include = TRUE}
+head(round(model_results$cs, 2)) # show structure of coefficients
+```
+
+We can save this as a CSV to use for plotting in another programming language.
+```{r, eval = FALSE}
+# save CSV for beta0 (Intercept)
+write.csv(model_results[["(Intercept)"]], 
+          file = "beta0.csv", 
+          row.names = FALSE) 
+
+# save CSV for beta1 (CS+/CS- effect)
+write.csv(model_results[["cs"]], 
+          file = "beta1.csv", 
+          row.names = FALSE) 
+```
+
+# Pointwise or Joint 95% Confidence Intervals
+We recommend basing inference off of joint CIs for two reasons: interpretability and multiple comparisons corrections. Joint CIs identify $intervals$ of the trial during which the effects are significant, while pointwise identify individual timepoints that are significant. Typically analyst are more interested in time intervals and so we argue joint CIs are more interpretable in photometry analyses. Joint CIs also provide an adjustment for the multiple comparisons of inspecting effects along the entire trial. It is reasonable to report both types of CIs, but we recommend basing conclusions off of joint CIs in most situations.
+
+# How to Cite
+For use of this package or vignette, please cite the following papers:
+
+Erjia Cui, Andrew Leroux, Ekaterina Smirnova, and Ciprian Crainiceanu. [Fast Univariate Inference for Longitudinal Functional Models](https://doi.org/10.1080/10618600.2021.1950006). Journal of Computational and Graphical Statistics (2022).
+
+Gabriel Loewinger, Erjia Cui, David Lovinger, and Francisco Pereiera. [A Statistical Framework for Analysis of Trial-Level Temporal Dynamics in Fiber Photometry Experiments](https://www.biorxiv.org/content/10.1101/2023.11.06.565896v1). Biorxiv (2023).
+
+# References
+
+Doug Bates. [lme4: Mixed-effects modeling with R](https://stat.ethz.ch/~maechler/MEMo-pages/lMMwR.pdf) (2022).
+
+Huijeong Jeong, Annie Taylor, Joseph Floeder, Martin Lohmann, Stefan Mihalas, Brenda Wu, Mingkang Zhou, Dennis Burke, Vijay Namboodiri. [Mesolimbic dopamine release conveys causal associations.](https://www.science.org/doi/full/10.1126/science.abq6740) Science 378, 6740 (2022).
