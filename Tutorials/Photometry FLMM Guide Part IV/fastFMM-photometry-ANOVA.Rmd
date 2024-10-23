@@ -1,0 +1,186 @@
+---
+title: "Photometry FLMM Guide Part IV: Testing effects of factor variables -- akin to ANOVA"
+author: "Gabriel Loewinger, Erjia Cui"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  toc: yes
+  pdf_document: null
+vignette: "%\\VignetteIndexEntry{fastFMM Vignette} %\\VignetteEncoding{UTF-8} %\\VignetteEngine{knitr::rmarkdown}
+  \n"
+---
+  
+```{r setup, echo = FALSE, eval = FALSE}
+knitr::opts_chunk$set(comment = "#>", warning=FALSE, message=FALSE)
+library(fastFMM)
+output: pdf_document
+# output: rmarkdown::html_vignette
+```
+
+```{r, message=FALSE, echo=FALSE, results='hide', include = FALSE, warning=FALSE}
+# Thanks to Yihui Xie for providing this code
+# #  %\VignetteEngine{knitr::rmarkdown} 
+# %\VignetteEngine{rmarkdown::render}
+suppressWarnings( library(knitr) )
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Part IV: Factor variables
+
+Neuroscience is full of between-group and/or within-subject between-condition designs. Analysts often compare mean differences in photometry values between these groups/conditions with variants of ANOVA methods (e.g., 1-way, 2-way, repeated measures, etc.). Testing these differences in an FLMM setting is straightforward and is really no different than testing multiple binary effects. This is expected since standard ANOVAs can be expressed as a linear regression with the factor variables expanded into a collection of binary indicator variables. 
+
+Using FLMM to analyze factor variables provides a significance test of whether there are differences in the average signal between the factor levels at each trial timepoint. One can use functional random effects to model heterogeneity in these differences across, for example, animals, conditions, sessions, etc. One can also adjust for other variables or test multiple effects.   
+
+## Data Formating
+
+Let's load some data from the same Pavlovian task used in Parts I - III, but with more sessions and select the subset of rows corresponding to the CS+. Again for demonstration purpose, we use data taken from Test 4 of [Jeong et al., 2022](https://www.science.org/doi/full/10.1126/science.abq6740) and we thank the authors for generously making their data public and helping us analyze it.
+
+To get the idea of ANOVA testing, let's treat $\texttt{session}$ number as a factor variable and each $\texttt{session}$ number is treated as a different level. This was the strategy we applied to test whether dopamine "backpropogates" in Appendix Figure 17 of our paper, [Loewinger et al., 2023](https://www.biorxiv.org/content/10.1101/2023.11.06.565896v1).
+
+Although we use a temporal variable as a factor in this case, the code and reasoning applies directly to cases where the factor variable encodes, for example, treatment groups, cue-type, experimental condition, etc. One might wonder whether there are differences between testing for $\texttt{session}$, a within-subject factor (for which we might typically apply a repeated measures ANOVA), and a between-subject factor (e.g., treatment group). From the point of view of the FLMM, the code is the same, but what differs is what random effects we might include (e.g., it does not make sense to include a subject-specific random effect of treatment group in a between-subjects design because animals are never in more than one group).
+```{r, message=FALSE, echo=TRUE, results='hide', include = TRUE, warning=FALSE}
+library(fastFMM) 
+library(dplyr)
+dat = read.csv("anova_data.csv") %>%
+        dplyr::filter(cs == 0) # CS+ trials only
+```
+
+`fui()` does not currently provide the ANOVA-style tables one might be accustomed to with many statistical software applications. We therefore manually set the variable of interest to a factor variable in `R` and specify a baseline factor level. 
+
+```{r}
+dat[,"session"] = factor(dat[,"session"]) # set to factor variable
+dat[,"session"] = relevel(dat[,"session"], ref = "1") # set first session to reference level
+```
+
+
+## Modeling
+Let's fit a couple simple models again. We will use the notation $X^{(r)}_{ij}$ to denote an indicator variable that the current session is $\texttt{session}$ number $r$ ($X^{(r)}_{ij}= \mathbf{1}_{(j = r)}$). For example, $X^{(2)}_{ij} = 1$ if the current session is session 2, and $X^{(2)}_{ij} = 0$ otherwise. For simplicity, let's start with a model that includes an animal-specific random intercept, and a second model with both an animal-specific random intercept and random slope. 
+
+Model 1:
+$$
+\begin{aligned} 
+& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s) +\sum_{t=2}^6 X^{(t)}_{ij}{\beta}_{t-1}(s)\notag 
+\end{aligned} 
+$$ 
+Model 2:
+$$
+\begin{aligned} 
+& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s)  + \sum_{t=2}^6 X^{(t)}_{ij}\left[{\beta}_{t-1}(s) + {\gamma}_{t-1}(s) \right ] \notag 
+\end{aligned} 
+$$ 
+We fit these with the following code, setting `parallel = TRUE` to speed up the code.
+```{r, message=FALSE, echo=TRUE, results='hide', include = TRUE, warning=FALSE}
+# fit two models
+mod1 = fui(photometry ~ session + (1 | id), data = dat, parallel = TRUE) # random intercept model
+mod2 = fui(photometry ~ session + (session | id), data = dat, parallel = TRUE) # random slope model
+```
+
+As before, let's compare the model fits of these two and choose the model with the superior (lower) AIC/BIC values.
+```{r}
+# average pointwise model fits
+colMeans(mod1$aic) # superior model: lower AIC/BIC 
+colMeans(mod2$aic) # worse model: higher AIC/BIC
+```
+
+Model 1 is superior according to the AIC/BIC values, so let's proceed with inference based on that model. 
+
+```{r fig1}
+# plot model with best model fit (AIC/BIC)
+plot_fui(mod1, 
+         xlab = "Time (sec)", # label x-axis
+         x_rescale = 25, # rescale x-axis to be in sec - photometry sampled at 25 Hz 
+         align_x = 2, # align to time of cue onset
+         title_names = c("Intercept: Mean Signal Session 1", "Mean Diff: Session 2 vs. 1",
+                         "Mean Diff: Session 3 vs. 1", "Mean Diff: Session 4 vs. 1",
+                         "Mean Diff: Session 5 vs. 1", "Mean Diff: Session 6 vs. 1")
+         )
+```
+
+The interpretation for the functional intercept at trial timepoint $s$ is "the mean signal on Session 1 at timepoint $s$." The remaining functional fixed effect coefficients show the mean change in the signal between the correspoinding session and baseline session (session 1 here). For example, the estimate $\widehat{\beta}_2(s)$ has the interpretation as "the mean difference in signal values between sessions 3 and session 1 at trial timepoint $s$." We see that the average signal magnitude is significantly lower on session 3 than on session 1 in roughly the first second after cue onset.
+
+## "ANOVA - Style" Testing
+
+ANOVA tables are helpful in some applications because they provide an omnibus test for an effect of the (factor) variable before applying pairwise tests (often in the form of posthocs). The construction of such a table is more complicated in FLMM models, especially alongside $joint$ confidence intervals. One solution, albeit an imperfect one, is to fit a standard LMM on a summary measure, constructed from time intervals that exhibited effects in the FLMM, and then generate an ANOVA table on the LMM. Then one can present this alongside results from the FLMM. So for example, in the present example, the differences across the different sessions are significant during the one second period after cue onset. We construct an average AUC during that time interval, fit a LMM with the same model specification and examine the ANOVA table.
+
+```{r, message=FALSE, warning = FALSE}
+library(lmerTest) # for ANOVA table
+
+photo_names = paste0("photometry.", 51:75) # photometry values of first second after cue onset
+photo_AUC = rowMeans(dat[,photo_names]) # AUC of photometry
+
+# fit LMM
+lmm = lmerTest::lmer(photo_AUC ~ session + (1 | id), data = dat) # random intercept 
+anova(lmm, ddf = "Satterthwaite") # construct ANOVA with Satterthwaite method
+```
+This secondary analysis shows that indeed, that $\texttt{session}$ is statistically significant and provides additional assurance that examining the pairwise differences outputted by the FLMM was not premature. 
+
+The summary measure (AUC) was constructed based upon the results of an inferential test because the secondary LMM was fit on an AUC that was constructed based upon prior analysis results (from the FLMM). This constitutes a post-selection inference problem and a more comprehensive solution would be the subject of future statistical methods research, a topic outside the scope of the present vignette. Analysts should report the sequence of steps they applied to ensure it is clear that a summary measure was constructed based on results from an FLMM.
+
+## Switching baselines for additional pairwise comparisons
+
+Sometimes we need to estimate pairwise comparisons (akin to posthocs) beyond those provided in the initial analysis. This can easily be completed by changing the baseline factor level specified above and rerunning the model. For example, let's say we wanted to compare Session 2 and Session 3, just adjust the `ref` arguent in the `relevel()` function and fit the same model.
+
+```{r fig2, eval = TRUE, message=FALSE, echo=TRUE, results='hide', include = TRUE, warning=FALSE}
+dat[,"session"] = relevel(dat[,"session"], ref = "2") # set second session to reference level
+mod1 = fui(photometry ~ session + (1 | id), data = dat, parallel = TRUE) # fit same model as before
+
+plot_fui(mod1, 
+         xlab = "Time (sec)", # label x-axis
+         x_rescale = 25, # rescale x-axis to be in sec - photometry sampled at 25 Hz 
+         align_x = 2, # align to time of cue onset
+         title_names = c("Intercept: Mean Signal Session 2", "Mean Diff: Session 1 vs. 2",
+                         "Mean Diff: Session 3 vs. 2", "Mean Diff: Session 4 vs. 2",
+                         "Mean Diff: Session 5 vs. 2", "Mean Diff: Session 6 vs. 2")
+         )
+```
+
+This brings up a similar posthoc question as before. If you want to make multiple pairwise comparisons, some effort to account for the multiple comparisons may be necessary, especially if many comparisons are made. While there is no straightforward way to use joint confidence intervals for multiple comparisons adjustment, one can report adjustments for posthocs in an LMM framework alongside their FLMM output to further bolster their results.
+
+```{r, eval = TRUE}
+lmm = lmerTest::lmer(photo_AUC ~ session + (1 | id), data = dat) # random intercept 
+emmeans::emmeans(lmm, list(pairwise ~ session), adjust = "tukey", lmer.df = "satterthwaite")
+```
+
+## FLMM Coefficient Interpretation
+
+The reason the functional slopes have the interpretation as "the mean change in the photometry signal between level $r$ and the baseline level at trial timepoint $s$" can be seen through the same algebraic steps as we showed in Part I, since a factor variable is just expanded into a collection of $K-1$ binary variables (where $K$ is the total number of levels of the factor). For that reason, we will not repeat the algebra here. 
+
+This does not entirely explain why the functional intercept is interpreted as the mean signal at the reference level. For example, we set session 1 to the reference level so the functional intercept would be interpreted as the mean signal on the first session. Remember, the functional intercept is always interpreted as the mean signal when all covariates are equal to 0. A factor is just expanded into $K-1$ binary variables indicating whether each observation occurred on a given session, but is only encoded for the $K-1$ non-baseline/reference levels. For the reference level of the factor, all these binary variables equal 0, and thus the intercept has the interpretation as the mean on the reference level. 
+
+# How to Cite
+For use of this package or vignette, please cite the following papers:
+
+Erjia Cui, Andrew Leroux, Ekaterina Smirnova, and Ciprian Crainiceanu. [Fast Univariate Inference for Longitudinal Functional Models](https://doi.org/10.1080/10618600.2021.1950006). Journal of Computational and Graphical Statistics (2022).
+
+Gabriel Loewinger, Erjia Cui, David Lovinger, and Francisco Pereiera. [A Statistical Framework for Analysis of Trial-Level Temporal Dynamics in Fiber Photometry Experiments](https://www.biorxiv.org/content/10.1101/2023.11.06.565896v1). Biorxiv (2023).
+
+# References
+
+Doug Bates. [lme4: Mixed-effects modeling with R](https://stat.ethz.ch/~maechler/MEMo-pages/lMMwR.pdf) (2022).
+
+Huijeong Jeong, Annie Taylor, Joseph Floeder, Martin Lohmann, Stefan Mihalas, Brenda Wu, Mingkang Zhou, Dennis Burke, Vijay Namboodiri. [Mesolimbic dopamine release conveys causal associations.](https://www.science.org/doi/full/10.1126/science.abq6740) Science 378, 6740 (2022).
+
+Alexandra Kuznetsova, Per B. Brockhoff and Rune H. B. Christensen. [lmerTest Package:
+Tests in Linear Mixed Effects Models](https://www.jstatsoft.org/article/view/v082i13). Journal of Statistical Software, 82(13), 1–26 (2017).
+
+Russell V. Lenth, Ben Bolker, Paul Buerkner, Iago Giné-Vázquez, Maxime Herve, Maarten Jung, Jonathon Love, Fernando Miguez, Hannes Riebl, Henrik Singmann. [emmeans: Estimated Marginal Means, aka Least-Squares Means](https://cran.r-project.org/web/packages/emmeans/index.html).
