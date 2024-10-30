@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from matplotlib.gridspec import GridSpec
 
 
@@ -53,8 +52,9 @@ def plot_fui(
         If return_data=False, returns the figure
         If return_data=True, returns (figure, list of dataframes)
     """
-
-    num_var = fuiobj["betaHat"].shape[0]  # number of variables to plot
+    # number of variables to plot
+    num_var = fuiobj["betaHat"].shape[0]
+    res_list = []
     if num_row is None:
         num_row = int(np.ceil(num_var / 2))
     num_col = int(np.ceil(num_var / num_row))
@@ -63,25 +63,39 @@ def plot_fui(
 
     if title_names is None:
         try:
-            title_names = fuiobj["var_names"]
+            title_names = fuiobj["betaHat"].index.to_list()
         except KeyError:
             title_names = [f"Variable {i}" for i in range(num_var)]
 
+    # sanity check the number of rows with number of varibles
+    if not len(fuiobj["betaHat"]) == len(title_names):
+        Warning(
+            "Incorrect number of title_names detected, replacing title names in plots"
+        )
+        try:
+            title_names = fuiobj["betaHat"].index.to_list()
+        except KeyError:
+            title_names = [f"Variable {i}" for i in range(num_var)]
+
+    # line in R is  names(res_list) <- rownames(fuiobj$betaHat)
+    # TODO: may need to change res_list in script to dict later on
+
     # Create figure and subplots
-    fig = plt.figure(figsize=(5 * num_col, 4 * num_row))
-    gs = GridSpec(num_row, num_col)
+    fig = plt.figure(figsize=(5, 4 * num_row))
+    gs = GridSpec(num_row, num_col, figure=fig)
 
     res_list = []
 
+    print(f"num_row: {num_row}, num_col: {num_col}")
     for r in range(num_var):
         row = r // num_col
         col = r % num_col
         ax = fig.add_subplot(gs[row, col])
 
         # Create plotting dataframe
-        if "betaHat_var" not in fuiobj or fuiobj["betaHat_var"] is None:
+        if "betaHat.var" not in fuiobj:
             beta_hat_plt = pd.DataFrame(
-                {"s": fuiobj["argvals"], "beta": fuiobj["betaHat"][r, :]}
+                {"s": fuiobj["argvals"], "beta": fuiobj["betaHat"].iloc[r, :]}
             )
 
             # Plot estimate
@@ -96,16 +110,18 @@ def plot_fui(
             )
 
         else:
-            var_diag = np.diag(fuiobj["betaHat_var"][:, :, r])
+            var_diag = np.diag(fuiobj["betaHat.var"][:, :, r])
             beta_hat_plt = pd.DataFrame(
                 {
                     "s": fuiobj["argvals"],
-                    "beta": fuiobj["betaHat"][r, :],
-                    "lower": fuiobj["betaHat"][r, :] - 2 * np.sqrt(var_diag),
-                    "upper": fuiobj["betaHat"][r, :] + 2 * np.sqrt(var_diag),
-                    "lower_joint": fuiobj["betaHat"][r, :]
+                    "beta": fuiobj["betaHat"].iloc[r, :],
+                    "lower": fuiobj["betaHat"].iloc[r, :]
+                    - 2 * np.sqrt(var_diag),
+                    "upper": fuiobj["betaHat"].iloc[r, :]
+                    + 2 * np.sqrt(var_diag),
+                    "lower_joint": fuiobj["betaHat"].iloc[r, :]
                     - fuiobj["qn"][r] * np.sqrt(var_diag),
-                    "upper_joint": fuiobj["betaHat"][r, :]
+                    "upper_joint": fuiobj["betaHat"].iloc[r, :]
                     + fuiobj["qn"][r] * np.sqrt(var_diag),
                 }
             )
@@ -150,7 +166,7 @@ def plot_fui(
         if ylim is not None:
             ax.set_ylim(ylim)
         else:
-            if "betaHat_var" not in fuiobj or fuiobj["betaHat_var"] is None:
+            if "betaHat.var" not in fuiobj or fuiobj["betaHat.var"] is None:
                 y_range = [
                     beta_hat_plt["beta"].min(),
                     beta_hat_plt["beta"].max(),
@@ -174,7 +190,7 @@ def plot_fui(
 
         res_list.append(beta_hat_plt)
 
-    plt.tight_layout()
+    fig.tight_layout()
 
     if return_data:
         return fig, res_list
