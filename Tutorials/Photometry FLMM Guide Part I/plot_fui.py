@@ -86,7 +86,6 @@ def plot_fui(
 
     res_list = []
 
-    print(f"num_row: {num_row}, num_col: {num_col}")
     for r in range(num_var):
         row = r // num_col
         col = r % num_col
