@@ -59,7 +59,9 @@ def compare_df_dat(df: pd.DataFrame, dat: ro.vectors.DataFrame):
     return result_df
 
 
-def read_csv_in_pandas_pass_to_r(csv_filepath: Path) -> None:
+def read_csv_in_pandas_pass_to_r(
+    csv_filepath: Path, r_var_name: str = "py_dat"
+) -> None:
     # read in data using round_trip float precision to mimic R precision
     df = pd.read_csv(csv_filepath, float_precision="round_trip")
 
@@ -72,7 +74,7 @@ def read_csv_in_pandas_pass_to_r(csv_filepath: Path) -> None:
 
     # convert it to an R variable
     with localconverter(pandas2ri.converter):
-        ro.globalenv["py_dat"] = df
+        ro.globalenv[r_var_name] = df
     return None
 
 

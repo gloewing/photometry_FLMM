@@ -154,7 +154,7 @@ def plot_fui(
             )
 
         # Add horizontal line at y=0
-        ax.axhline(y=0, color="red", linestyle="--", alpha=0.75)
+        ax.axhline(y=0, color="black", linestyle="--", alpha=0.75)
 
         # Set labels and title
         ax.set_xlabel(xlab)
