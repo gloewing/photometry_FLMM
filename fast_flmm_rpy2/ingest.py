@@ -2,9 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import rpy2.rinterface as rinterface  # type: ignore
 from rpy2 import robjects as ro
-from rpy2.robjects import pandas2ri
-from rpy2.robjects.conversion import localconverter
+from rpy2.robjects import pandas2ri  # type: ignore
+from rpy2.robjects.conversion import localconverter  # type: ignore
 
 
 def pandas_read_in_csv_roundtrip(filepath: Path) -> pd.DataFrame:
@@ -70,7 +71,7 @@ def read_csv_in_pandas_pass_to_r(
     df["trial"] = df["trial"].fillna(-1).astype("int")
     df["trial"] = df["trial"].apply(lambda x: pd.NA if x < 1 else x)
     # change index of df to match 1 to len(df) + 1 index in R
-    df.index = range(1, len(df) + 1)
+    df.index = range(1, len(df) + 1)  # type: ignore
 
     # convert it to an R variable
     with localconverter(pandas2ri.converter):
@@ -86,3 +87,27 @@ def compare_df_dat_in_r(csv_filepath: Path) -> bool:
         np.asarray(ro.r("all(na.omit(dat == py_dat))")).astype(bool).item()
     )
     return compare_result
+
+
+def mod_rules() -> ro.conversion.Converter:
+    rules = ro.default_converter + pandas2ri.converter
+
+    @rules.rpy2py.register(rinterface.FloatSexpVector)
+    def rpy2py_floatvector(obj):
+        x = np.array(obj)
+        try:
+            # if names is assigned, convert to pandas series
+            return pd.Series(x, obj.names)
+        except Exception:
+            # if dimnames assigned, it's a named matrix,
+            # convert to pandas dataframe
+            try:
+                rownames, colnames = obj.do_slot("dimnames")
+                x = pd.DataFrame(x, index=rownames, columns=colnames)
+            finally:
+                # plain vector/matrix
+                return x
+
+    # dummy call to prevent pylance error
+    _ = rpy2py_floatvector
+    return rules

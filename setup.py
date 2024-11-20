@@ -1,5 +1,6 @@
-from setuptools import find_packages, setup
 import os
+
+from setuptools import find_packages, setup  # type: ignore
 
 setup(
     name="fast_flmm_rpy2",  # Choose a unique name
@@ -18,6 +19,12 @@ setup(
         "jupyter",
         "pandas",
         "pytest",
+        "black",
+        "flake8",
+        "mypy",
+        "isort",
+        "pandas-stubs",
+        "matplotlib",
     ],
     python_requires=">=3.9",  # Specify minimum Python version
 )

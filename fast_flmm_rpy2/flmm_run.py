@@ -2,12 +2,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import rpy2.rinterface as rinterface  # type: ignore
+from rpy2 import robjects as ro  # type: ignore
+from rpy2.robjects import pandas2ri  # type: ignore
+from rpy2.robjects.conversion import localconverter  # type: ignore
+from rpy2.robjects.packages import importr  # type: ignore
+
 from fast_flmm_rpy2.ingest import read_csv_in_pandas_pass_to_r
-from rpy2 import robjects as ro
-from rpy2.robjects import pandas2ri
-from rpy2.robjects.conversion import localconverter
-from rpy2.robjects.packages import importr
-import rpy2.rinterface as rinterface
 
 # import R packages
 base = importr("base")
