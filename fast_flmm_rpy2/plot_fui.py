@@ -10,6 +10,7 @@ from rpy2.rlike.container import OrdDict  # type: ignore
 from rpy2.robjects import pandas2ri  # type: ignore
 from rpy2.robjects.conversion import localconverter  # type: ignore
 from rpy2.robjects.packages import importr  # type: ignore
+from rpy2.rinterface_lib.sexp import NULLType  # type: ignore
 
 from fast_flmm_rpy2.ingest import read_csv_in_pandas_pass_to_r
 
@@ -67,6 +68,7 @@ def plot_fui(
     """
     # number of variables to plot
     num_var = fuiobj["betaHat"].shape[0]
+    var_names = fuiobj["betaHat"].index.to_list()
     res_list = []
     if num_row is None:
         num_row = int(np.ceil(num_var / 2))
@@ -206,7 +208,7 @@ def plot_fui(
     fig.tight_layout()
 
     if return_data:
-        return fig, res_list
+        return fig, dict(zip(var_names, res_list))
     return fig
 
 
@@ -251,7 +253,13 @@ def py_plot_fui_results(
             # convert to pandas dataframe
             try:
                 rownames, colnames = obj.do_slot("dimnames")
-                x = pd.DataFrame(x, index=rownames, columns=colnames)
+                if not isinstance(rownames, NULLType) and not isinstance(
+                    colnames, NULLType
+                ):
+                    x = pd.DataFrame(x, index=rownames, columns=colnames)
+                else:
+                    x = pd.DataFrame(x, columns=colnames)
+
             finally:
                 # plain vector/matrix
                 return x
@@ -265,6 +273,6 @@ def py_plot_fui_results(
             data=base.as_symbol("py_dat"),
         )
     _, plot_data = plot_fui(mod, return_data=True)
-    py_intercept: pd.DataFrame = plot_data[0]
-    py_cs: pd.DataFrame = plot_data[1]
+    py_intercept: pd.DataFrame = plot_data["(Intercept)"]
+    py_cs: pd.DataFrame = plot_data["cs"]
     return py_intercept, py_cs
