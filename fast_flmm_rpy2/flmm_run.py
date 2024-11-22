@@ -54,3 +54,21 @@ def run_with_r_dataframe(csv_filepath: Path, import_rules=local_rules):
     with localconverter(import_rules):
         r_mod = ro.r("mod")
     return r_mod
+
+
+def fui(
+    csv_filepath: Path,
+    formula: str,
+    parallel: bool = True,
+    import_rules=local_rules,
+):
+    read_csv_in_pandas_pass_to_r(
+        csv_filepath=csv_filepath, r_var_name="py_dat"
+    )
+    with localconverter(import_rules):
+        mod = fastFMM.fui(
+            stats.as_formula(formula),
+            data=base.as_symbol("py_dat"),
+            parallel=parallel,
+        )
+    return mod
