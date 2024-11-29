@@ -9,7 +9,7 @@ from rpy2.robjects.conversion import localconverter  # type: ignore
 from rpy2.robjects.packages import importr  # type: ignore
 from rpy2.rinterface_lib.sexp import NULLType  # type: ignore
 
-from fast_flmm_rpy2.ingest import read_csv_in_pandas_pass_to_r
+from fast_fmm_rpy2.ingest import read_csv_in_pandas_pass_to_r
 
 # import R packages
 base = importr("base")

@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from rpy2 import robjects as ro
 
-from fast_flmm_rpy2.ingest import (
+from fast_fmm_rpy2.ingest import (
     compare_df_dat,
     pandas_read_in_csv_roundtrip,
     r_read_in_csv_rpy2_convert,

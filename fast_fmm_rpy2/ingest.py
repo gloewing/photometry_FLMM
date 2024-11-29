@@ -79,6 +79,28 @@ def read_csv_in_pandas_pass_to_r(
     return df
 
 
+def read_csv_for_r(
+    csv_filepath: Path, r_var_name: str = "py_dat"
+) -> pd.DataFrame:
+    # read in data using round_trip float precision to mimic R precision
+    df = pd.read_csv(csv_filepath, float_precision="round_trip")
+
+    # R uses NA_integer_, so Pandas DataFrames MUST use pd.NA and NOT np.nan
+    # for NA representation
+    df["trial"] = df["trial"].fillna(-1).astype("int")
+    df["trial"] = df["trial"].apply(lambda x: pd.NA if x < 1 else x)
+    # change index of df to match 1 to len(df) + 1 index in R
+    df.index = range(1, len(df) + 1)  # type: ignore
+
+    return df
+
+
+def pass_pandas_to_r(df: pd.DataFrame, r_var_name: str = "py_dat") -> None:
+    with localconverter(pandas2ri.converter):
+        ro.globalenv[r_var_name] = df
+    return None
+
+
 def compare_df_dat_in_r(csv_filepath: Path) -> bool:
     with localconverter(ro.default_converter):
         ro.r(f'dat = read.csv("{str(csv_filepath.absolute())}")')

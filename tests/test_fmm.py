@@ -1,4 +1,4 @@
-from fast_flmm_rpy2.flmm_run import (
+from fast_fmm_rpy2.fmm_run import (
     run_with_pandas_dataframe,
     run_with_r_dataframe,
     fui,
@@ -15,7 +15,7 @@ import rpy2.rinterface as rinterface  # type: ignore
 from rpy2 import robjects as ro  # type: ignore
 from rpy2.robjects import pandas2ri  # type: ignore
 from rpy2.robjects.conversion import localconverter  # type: ignore
-from fast_flmm_rpy2.flmm_run import fui
+from fast_fmm_rpy2.fmm_run import fui
 import pandas as pd
 
 

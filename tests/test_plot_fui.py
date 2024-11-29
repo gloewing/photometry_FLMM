@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from fast_flmm_rpy2.plot_fui import (
+from fast_fmm_rpy2.plot_fui import (
     py_plot_fui_results,
     r_export_plot_fui_results,
 )
