@@ -29,6 +29,7 @@ See the `Tutorials` folder above for the datasets and Rmarkdown files used to ge
 
 ### Calling `fastFMM` from Python
 
-See 'python_fastFMM_vignette.py' in the Tutorials folder for a brief example of using `fastFMM` on Python through the Python package `rpy2`. We are working on more documentation. The tutorial assumes the `fastFMM` R package (and all its dependenices), and the `rpy2` Python package have already been installed.  Even if you intend to use the package purely within Python, it may be helpful to first install `fastFMM` from within RStudio to ensure all package dependenices are installed automatically.
+See the Python version of [Photometry FLMM Guide Part I](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Photometry%20FLMM%20Guide%20Part%20I/fastFMM-photometry-binary.ipynb) for an example of using `fastFMM` in Python through the Python packages `rpy2` and `fast_fmm_rpy2`. The tutorial assumes the `fastFMM` R package (and all its dependenices), and the `rpy2` Python package have already been installed, but we are working on more documentation for how to install and set up these packages for Python users.  Even if you intend to use the package purely within Python, it may be helpful to first install `fastFMM` from within RStudio to ensure all package dependenices are installed automatically. Finally, see 'python_fastFMM_vignette.py' in the [Github repo](https://github.com/gloewing/photometry_FLMM/tree/main/Tutorials) for a very brief example of using `fastFMM` on Python through the Python package `rpy2`. 
+
 
 
