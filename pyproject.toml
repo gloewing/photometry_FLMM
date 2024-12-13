@@ -1,3 +1,40 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "fast_fmm_rpy2"
+version = "0.1.0"
+description = "FLMM rpy2 wrapper for analyzing Fiber Photometry data"
+authors = [
+    {name = "Josh Lawrimore", email = "josh.lawrimore@nih.gov"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}  # Add a LICENSE file if you have one
+
+dependencies = [
+    "rpy2",
+    "jupyter",
+    "pandas",
+    "matplotlib"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8",
+    "mypy",
+    "isort",
+    "pandas-stubs"
+]
+
+[tool.setuptools]
+packages = {find = {}}
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
