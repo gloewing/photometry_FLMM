@@ -120,9 +120,10 @@ The interpretation for the functional intercept at trial timepoint $s$ is "the m
 
 ## "ANOVA - Style" Testing
 
-ANOVA tables are helpful in some applications because they provide an omnibus test for an effect of the (factor) variable before applying pairwise tests (often in the form of posthocs). The construction of such a table is more complicated in FLMM models, especially alongside $joint$ confidence intervals. One solution, albeit an imperfect one, is to fit a standard LMM on a summary measure, constructed from time intervals that exhibited effects in the FLMM, and then generate an ANOVA table on the LMM. Then one can present this alongside results from the FLMM. So for example, in the present example, the differences across the different sessions are significant during the one second period after cue onset. We construct an average AUC during that time interval, fit a LMM with the same model specification and examine the ANOVA table.
+ANOVA tables are helpful in some applications because they provide an omnibus test for an effect of the (factor) variable before applying pairwise tests (often in the form of posthocs). The construction of such a table is more complicated in FLMM models, especially alongside $joint$ confidence intervals. One solution, albeit an imperfect one, is to fit a standard LMM on a summary measure, constructed from time intervals that exhibited effects in the FLMM, and then generate an ANOVA table on the LMM. Then one can present this alongside results from the FLMM. So for example, in the present example, the differences across the different sessions are significant during the one second period after cue onset. We construct an average AUC during that time interval, fit a LMM with the same model specification and examine the ANOVA table. The following code uses the $\texttt{lmerTest}$ package so make sure to install it (you can use the example installation code that is commented out on the first line) if you haven't before.
 
 ```{r, message=FALSE, warning = FALSE}
+# install.packages('lmerTest', dependencies = TRUE) # install lmerTest package
 library(lmerTest) # for ANOVA table
 
 photo_names = paste0("photometry.", 51:75) # photometry values of first second after cue onset
@@ -154,9 +155,10 @@ plot_fui(mod1,
          )
 ```
 
-This brings up a similar posthoc question as before. If you want to make multiple pairwise comparisons, some effort to account for the multiple comparisons may be necessary, especially if many comparisons are made. While there is no straightforward way to use joint confidence intervals for multiple comparisons adjustment, one can report adjustments for posthocs in an LMM framework alongside their FLMM output to further bolster their results.
+This brings up a similar posthoc question as before. If you want to make multiple pairwise comparisons, some effort to account for the multiple comparisons may be necessary, especially if many comparisons are made. While there is no straightforward way to use joint confidence intervals for multiple comparisons adjustment, one can report adjustments for posthocs in an LMM framework alongside their FLMM output to further bolster their results. The following code uses the $\texttt{emmeans}$ package so make sure to install it (you can use the example installation code that is commented out on the first line) if you haven't before.
 
 ```{r, eval = TRUE}
+# install.packages('emmeans', dependencies = TRUE) # install lmerTest package
 lmm = lmerTest::lmer(photo_AUC ~ session + (1 | id), data = dat) # random intercept 
 emmeans::emmeans(lmm, list(pairwise ~ session), adjust = "tukey", lmer.df = "satterthwaite")
 ```
