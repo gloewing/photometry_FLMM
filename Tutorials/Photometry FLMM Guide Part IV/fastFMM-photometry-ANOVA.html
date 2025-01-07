@@ -11,7 +11,7 @@
 
 <meta name="author" content="Gabriel Loewinger, Erjia Cui" />
 
-<meta name="date" content="2024-09-07" />
+<meta name="date" content="2025-01-07" />
 
 <title>Photometry FLMM Guide Part IV: Testing effects of factor variables – akin to ANOVA</title>
 
@@ -1624,7 +1624,7 @@ display: none;
 <h1 class="title toc-ignore">Photometry FLMM Guide Part IV: Testing
 effects of factor variables – akin to ANOVA</h1>
 <h4 class="author">Gabriel Loewinger, Erjia Cui</h4>
-<h4 class="date">2024-09-07</h4>
+<h4 class="date">2025-01-07</h4>
 
 </div>
 
@@ -1763,8 +1763,11 @@ alongside results from the FLMM. So for example, in the present example,
 the differences across the different sessions are significant during the
 one second period after cue onset. We construct an average AUC during
 that time interval, fit a LMM with the same model specification and
-examine the ANOVA table.</p>
-<pre class="r"><code>library(lmerTest) # for ANOVA table
+examine the ANOVA table. The following code uses the <span class="math inline">\(\texttt{lmerTest}\)</span> package so make sure to
+install it (you can use the example installation code that is commented
+out on the first line) if you haven’t before.</p>
+<pre class="r"><code># install.packages(&#39;lmerTest&#39;, dependencies = TRUE) # install lmerTest package
+library(lmerTest) # for ANOVA table
 
 photo_names = paste0(&quot;photometry.&quot;, 51:75) # photometry values of first second after cue onset
 photo_AUC = rowMeans(dat[,photo_names]) # AUC of photometry
@@ -1815,8 +1818,11 @@ multiple comparisons may be necessary, especially if many comparisons
 are made. While there is no straightforward way to use joint confidence
 intervals for multiple comparisons adjustment, one can report
 adjustments for posthocs in an LMM framework alongside their FLMM output
-to further bolster their results.</p>
-<pre class="r"><code>lmm = lmerTest::lmer(photo_AUC ~ session + (1 | id), data = dat) # random intercept 
+to further bolster their results. The following code uses the <span class="math inline">\(\texttt{emmeans}\)</span> package so make sure to
+install it (you can use the example installation code that is commented
+out on the first line) if you haven’t before.</p>
+<pre class="r"><code># install.packages(&#39;emmeans&#39;, dependencies = TRUE) # install lmerTest package
+lmm = lmerTest::lmer(photo_AUC ~ session + (1 | id), data = dat) # random intercept 
 emmeans::emmeans(lmm, list(pairwise ~ session), adjust = &quot;tukey&quot;, lmer.df = &quot;satterthwaite&quot;)</code></pre>
 <pre><code>## $`emmeans of session`
 ##  session emmean    SE   df lower.CL upper.CL
