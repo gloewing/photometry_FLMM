@@ -23,7 +23,7 @@ For the usage and a tutorial on package functions, please refer to [fastFMM's Vi
 - $\textbf{Part 2}$: [Testing changes within a trial between 2 periods (baseline vs. cue period)](https://rpubs.com/gloewinger/1159127)
 - $\textbf{Part 3}$: [Associations with continuous variables](https://rpubs.com/gloewinger/1159129)
 - $\textbf{Part 4}$: [Testing Factor Variables](https://rpubs.com/gloewinger/1159411)
-- $\textbf{Part 5}$: [Testing how signal–covariate associations change across time](https://rpubs.com/gloewinger/1159601)
+- $\textbf{Part 5}$: [Testing how signal–covariate associations change across trials/sessions](https://rpubs.com/gloewinger/1159601)
 
 See the `Tutorials` folder above for the datasets and Rmarkdown files used to generate the above guides.
 
