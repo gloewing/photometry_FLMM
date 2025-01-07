@@ -76,15 +76,18 @@ def fui(
     Parameters
     ----------
     csv_filepath : Path or None
-        The file path to the CSV file containing the data. If None, `r_var_name` must be provided.
+        The file path to the CSV file containing the data.
+        If None, `r_var_name` must be provided.
     formula : str
         The formula to be used in the fastFMM model.
     parallel : bool, optional
         Whether to run the model in parallel. Default is True.
     import_rules : object, optional
-        The import rules to be used for the local converter. Default is `local_rules`.
+        The import rules to be used for the local converter.
+        Default is `local_rules`.
     r_var_name : str or None, optional
-        The R variable name to be used for the data. If `csv_filepath` is None, this must be provided. Default is "py_dat".
+        The R variable name to be used for the data. If `csv_filepath` is None,
+        this must be provided. Default is "py_dat".
 
     Returns
     -------
