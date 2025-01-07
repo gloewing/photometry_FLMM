@@ -51,7 +51,7 @@ Neuroscience studies often use rich longitudinal experimental designs that allow
 
 So how do we test whether signal-covariate association levels change across time? One strategy is to model this with interactions between time (e.g., trial, session, conditions) and the variable of interest (CS+/CS-, behavior, treatment/control group). We have already seen how to model these separately, so now we just "put them together" in an interaction term, apply some of the tricks we have seen for interpretability, and interpret the coefficients appropriately. Just like the main effects, the joint 95% confidence intervals of the interaction terms will allow us to read statistical significance directly off the coefficient plots. To see this, let's use the datasets from previous parts to evaluate whether the $difference$ in average photometry signal to the CS+ vs. CS- changes across time. For example, perhaps as animals learn to better distinguish between the two cues (behaviorally), the average neural signals to the cues (CS+ and CS-) grow more different.
 
-For demonstration purpose, we use data from the first 6 days (after switching from short delay days) of the long delay sessions from Test 4 of [Jeong et al., 2022](https://www.science.org/doi/full/10.1126/science.abq6740) and we thank the authors for generously making their data public and helping us analyze it.
+For demonstration purpose, we use data from the first 3 days (after switching from short delay days) of the long delay sessions from Test 4 of [Jeong et al., 2022](https://www.science.org/doi/full/10.1126/science.abq6740) and we thank the authors for generously making their data public and helping us analyze it.
 
 ## Considerations for modeling time
 
@@ -59,13 +59,13 @@ Part and parcel to the analysis questions posed above are decisions about how we
 
 ## Modeling
 
-Let's fit a couple models, and start with a simple setting where we include only the first ($\texttt{session} = 1$) and last session ($\texttt{session} = 6$) in this example dataset, using the same $X^{(6)}_{ij} = 1$ to denote that the current session is the final $\texttt{session}$ ($\texttt{session} = 6$) and $X^{(6)}_{ij} = 0$ to denote that the current session is the first $\texttt{session}$ ($\texttt{session} = 1$). We adjust our CS+/CS- notation slightly from previous sections to more easily distinguish between the CS+/CS- stimulus covariates and the time covariates above: we use $\texttt{CS}_{ij} = 1$ to denote CS- trials and $\texttt{CS}_{ij} = 0$ to denote CS+ trials. We use the shorthand to denote the vector of covariates $\mathbf{X}_{ij} = [X^{(6)}_{ij}~~~\texttt{CS}_{ij}]^T$
+Let's fit a couple models, and start with a simple setting where we include only the first ($\texttt{session} = 1$) and last session ($\texttt{session} = 3$) in this example dataset, using the same $X^{(3)}_{ij} = 1$ to denote that the current session is the final $\texttt{session}$ ($\texttt{session} = 3$) and $X^{(3)}_{ij} = 0$ to denote that the current session is the first $\texttt{session}$ ($\texttt{session} = 1$). We adjust our CS+/CS- notation slightly from previous sections to more easily distinguish between the CS+/CS- stimulus covariates and the time covariates above: we use $\texttt{CS}_{ij} = 1$ to denote CS- trials and $\texttt{CS}_{ij} = 0$ to denote CS+ trials. We use the shorthand to denote the vector of covariates $\mathbf{X}_{ij} = [X^{(3)}_{ij}~~~\texttt{CS}_{ij}]^T$
 
 ```{r, message=FALSE, echo=TRUE, results='hide', include = TRUE, warning=FALSE}
 library(fastFMM) 
 library(dplyr)
 dat = read.csv("int_data.csv") %>% 
-          dplyr::filter(session %in% c(1,3)) # Sessions 1 and 6 only
+          dplyr::filter(session %in% c(1,3)) # Sessions 1 and 3 only
 
 # make session a factor variable
 dat[,"session"] = factor(dat[,"session"]) # set to factor variable
@@ -77,13 +77,13 @@ For simplicity, let's start with a model that includes an animal-specific (funct
 Model 1:
 $$
 \begin{aligned} 
-& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s) + \texttt{CS}_{ij} \beta_1(s) + X^{(6)}_{ij} \beta_2 + X^{(6)}_{ij} \texttt{CS}_{ij} \beta_3 \notag 
+& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s) + \texttt{CS}_{ij} \beta_1(s) + X^{(3)}_{ij} \beta_2 + X^{(3)}_{ij} \texttt{CS}_{ij} \beta_3 \notag 
 \end{aligned} 
 $$ 
 Model 2:
 $$
 \begin{aligned} 
-& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s) + \texttt{CS}_{ij} \left[\beta_1(s) + {\gamma}_{1}(s) \right ] + X^{(6)}_{ij} \beta_2 + X^{(6)}_{ij} \texttt{CS}_{ij} \beta_3 \notag 
+& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}, \boldsymbol{\gamma}_i(s)] =  \beta_0(s) + {\gamma}_{0,i}(s) + \texttt{CS}_{ij} \left[\beta_1(s) + {\gamma}_{1}(s) \right ] + X^{(3)}_{ij} \beta_2 + X^{(3)}_{ij} \texttt{CS}_{ij} \beta_3 \notag 
 \end{aligned} 
 $$ 
 
@@ -111,7 +111,7 @@ plot_fui(mod2,
          x_rescale = 25, # rescale x-axis to be in sec - photometry sampled at 25 Hz 
          align_x = 2, # align to time of cue onset
          title_names = c("Intercept: Mean Signal CS+ on S1", "Mean Diff: CS+ vs. CS- on S1",
-                         "Mean Diff: S6 vs. S1 on CS+ Trials", "Interaction: CS+/CS- Difference \n Change across S6 vs. S1")
+                         "Mean Diff: S3 vs. S1 on CS+ Trials", "Interaction: CS+/CS- Difference \n Change across S3 vs. S1")
          )
 ```
 
@@ -120,7 +120,7 @@ The interpretation for the functional intercept at trial timepoint $s$ is "the m
 This provides an example of the value of analyzing the signal at every trial timepoint: if we had analyzed the CS+/CS- effect with, for example, a t-test applied to AUCs, we may have missed the brief period of a significantly larger signal on CS- trials (i.e., the positive $\widehat{\beta}_1(s)$ around 0s-0.2s). It may have been drowned out by the longer and larger magnitude period when the average CS+ signal is larger (i.e., the negative $\widehat{\beta}_1(s)$ around 0.2s-1s).
 
 
-The estimate $\widehat{\beta}_2(s)$ has the interpretation as "the mean difference in signal values between Sessions 6 (S6) and Session 1 at trial timepoint $s$ on CS+ trials." The interpretation here compares the difference between Sessions 1 and 6 on CS+ trials specifically, again because of the interaction. Finally, $\widehat{\beta}_3(s)$, the interaction term, shows the $change$ in the mean signal difference between CS+ and CS- trials from session 1 to session 6. More specifically, in the interval 0.5s-1s post-cue, we see that the difference in mean signals between CS+ and CS- trials is significantly larger on Session 6, than it is on Session 1. If animals learn to distinguish CS+ and CS- trials better from Session 1 to Session 6, we might expect the difference between the average signals on those trials to also grow larger with learning. This provides one strategy to conduct a hypothesis test evaluating how the effect of a covariate ($\texttt{CS}$: CS+ vs. CS-) on mean photometry values, changes across time.
+The estimate $\widehat{\beta}_2(s)$ has the interpretation as "the mean difference in signal values between Sessions 3 (S3) and Session 1 at trial timepoint $s$ on CS+ trials." The interpretation here compares the difference between Sessions 1 and 3 on CS+ trials specifically, again because of the interaction. Finally, $\widehat{\beta}_3(s)$, the interaction term, shows the $change$ in the mean signal difference between CS+ and CS- trials from session 1 to session 3. More specifically, in the interval 0.5s-1s post-cue, we see that the difference in mean signals between CS+ and CS- trials is significantly larger on Session 3, than it is on Session 1. If animals learn to distinguish CS+ and CS- trials better from Session 1 to Session 3, we might expect the difference between the average signals on those trials to also grow larger with learning. This provides one strategy to conduct a hypothesis test evaluating how the effect of a covariate ($\texttt{CS}$: CS+ vs. CS-) on mean photometry values, changes across time.
 
 ## FLMM Coefficient Interpretation
 
@@ -134,26 +134,26 @@ But why does the functional intercept have the interpretation as the average sig
 
 ### Interaction Term Coefficient Interpretations
 
-The interaction term plot provides an estimate (and hypothesis test) of how much the effect of cue (CS+ vs. CS-) changes from Session 1 to Session 6. Why? Let's go through the algebra to build a little intuition. First, recall the $marginal$ model for reference,
+The interaction term plot provides an estimate (and hypothesis test) of how much the effect of cue (CS+ vs. CS-) changes from Session 1 to Session 3. Why? Let's go through the algebra to build a little intuition. First, recall the $marginal$ model for reference,
 
 $$
 \begin{aligned} 
-& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}] =  \beta_0(s) + \texttt{CS}_{ij} \beta_1(s) + X^{(6)}_{ij} \beta_2 + X^{(6)}_{ij} \texttt{CS}_{ij} \beta_3. \notag 
+& \mathbb{E}[Y_{ij}(s) \mid \mathbf{X}_{ij}] =  \beta_0(s) + \texttt{CS}_{ij} \beta_1(s) + X^{(3)}_{ij} \beta_2 + X^{(3)}_{ij} \texttt{CS}_{ij} \beta_3. \notag 
 \end{aligned} 
 $$ 
 
 Now let's plug in our interpretation for $\beta_3(s)$. Interactions have a difference-in-differences interpretation, which we explain below:
 $$
 \begin{align} 
-&\left ( \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(6)}_{ij}= 1] - \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(6)}_{ij}= 1] \right ) - \left ( \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(6)}_{ij}= 0] - \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(6)}_{ij}= 0] \right ) \\
+&\left ( \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(3)}_{ij}= 1] - \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(3)}_{ij}= 1] \right ) - \left ( \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(3)}_{ij}= 0] - \mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(3)}_{ij}= 0] \right ) \\
 &=\left ( \beta_0(s) + {\beta}_1(s) + {\beta}_2(s) + {\beta}_3(s)  -\left [ \beta_0(s) - {\beta}_2(s) \right ]\right ) - \left ( \beta_0(s) + {\beta}_1(s) - [{\beta}_0(s)] \right ) \\
 &=\beta_3(s).
 \end{align} 
 $$
 
-The first difference (in the difference-in-differences) is between the average signal on CS- trials on Session 6, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(6)}_{ij}= 1]$, and the average signal on CS+ trials on Session 6, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(6)}_{ij}= 1]$. The second difference is between the average signal on CS- trials on Session 1, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(6)}_{ij}= 0]$, and the average signal on CS+ trials on Session 1, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(6)}_{ij}= 0]$. Thus, estimating the difference between these two $differences$, (i.e., $\beta_3(s)$), provides a formal way to evaluate whether the cue effect evolves across sessions.
+The first difference (in the difference-in-differences) is between the average signal on CS- trials on Session 3, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(3)}_{ij}= 1]$, and the average signal on CS+ trials on Session 3, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(3)}_{ij}= 1]$. The second difference is between the average signal on CS- trials on Session 1, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 1, X^{(3)}_{ij}= 0]$, and the average signal on CS+ trials on Session 1, $\mathbb{E}[Y_{ij}(s) \mid \texttt{CS}_{ij} = 0, X^{(3)}_{ij}= 0]$. Thus, estimating the difference between these two $differences$, (i.e., $\beta_3(s)$), provides a formal way to evaluate whether the cue effect evolves across sessions.
 
-The fact that the interaction term estimate, $\widehat{\beta}_3(s)$ is significantly positive from roughly 0.5s - 1.25s post cue-onset indicates that the difference between the CS+/CS- average signals is more positive on Session 6 than on Session 1 in that time interval. Remember we coded $\texttt{CS}_{ij} = 1$ to indicate CS- trials, and the signal is higher on CS+ trials. Thus this interaction shows that although the mean signal is larger on CS+ trials than on CS- trials on Session 6, that difference is significantly $smaller$ on Session 6 than it was on Session 1 (during that 0.5s-1.25s post cue-onset interval). Interestingly, there appears to be a very brief, and significant interaction effect right around cue-onset. This is another example of  an effect that would likely "wash out" if we analyzed this interaction with a summary measure (e.g., AUC).
+The fact that the interaction term estimate, $\widehat{\beta}_3(s)$ is significantly positive from roughly 0.5s - 1.25s post cue-onset indicates that the difference between the CS+/CS- average signals is more positive on Session 3 than on Session 1 in that time interval. Remember we coded $\texttt{CS}_{ij} = 1$ to indicate CS- trials, and the signal is higher on CS+ trials. Thus this interaction shows that although the mean signal is larger on CS+ trials than on CS- trials on Session 3, that difference is significantly $smaller$ on Session 3 than it was on Session 1 (during that 0.5s-1.25s post cue-onset interval). Interestingly, there appears to be a very brief, and significant interaction effect right around cue-onset. This is another example of  an effect that would likely "wash out" if we analyzed this interaction with a summary measure (e.g., AUC).
 
 # How to Cite
 For use of this package or vignette, please cite the following papers:
