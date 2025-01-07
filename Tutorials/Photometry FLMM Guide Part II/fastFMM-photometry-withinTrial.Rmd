@@ -68,7 +68,7 @@ But what does it mean for the signal to be significantly different from 0? This 
 ```{r}
 # normalize to pre-cue baseline period
 baseline_photometry = paste0("photometry.", 1:50) # names of photometry columns during first 2 sec
-full_photometry = paste0("photometry.", 1:120) # names of all photometry columns
+full_photometry = paste0("photometry.", 1:125) # names of all photometry columns
 dat[,full_photometry] = dat[,full_photometry] - rowMeans(dat[,baseline_photometry]) # subtract off trial-specific baseline from each photometry value
 ```
 
