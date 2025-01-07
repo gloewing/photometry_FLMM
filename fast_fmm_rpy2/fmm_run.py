@@ -64,18 +64,26 @@ def run_with_r_dataframe(csv_filepath: Path, import_rules=local_rules):
 
 
 def fui(
-    csv_filepath: Path,
+    csv_filepath: Path | None,
     formula: str,
     parallel: bool = True,
     import_rules=local_rules,
+    r_var_name: str | None = "py_dat",
 ):
-    read_csv_in_pandas_pass_to_r(
-        csv_filepath=csv_filepath, r_var_name="py_dat"
-    )
+    if csv_filepath is None:
+        assert (
+            r_var_name is not None
+        ), "r_var_name must be provided if csv_filepath is None"
+    elif r_var_name is not None:
+        read_csv_in_pandas_pass_to_r(
+            csv_filepath=csv_filepath, r_var_name=r_var_name
+        )
+    else:
+        raise ValueError("r_var_name must be provided if csv_filepath is None")
     with localconverter(import_rules):
         mod = fastFMM.fui(
             stats.as_formula(formula),
-            data=base.as_symbol("py_dat"),
+            data=base.as_symbol(r_var_name),
             parallel=parallel,
         )
     return mod
