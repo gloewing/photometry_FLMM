@@ -18,7 +18,7 @@ install.packages("fastFMM", dependencies = TRUE)
 
 For the usage and a tutorial on package functions, please refer to [fastFMM's Vignette](https://rpubs.com/gloewinger/1110512). 
 
-### Photometry Analysis Guide
+### Photometry Analysis Guide in R
 - $\textbf{Part 1}$: [Binary Variables](https://rpubs.com/gloewinger/1159094) 
 - $\textbf{Part 2}$: [Testing changes within a trial between 2 periods (baseline vs. cue period)](https://rpubs.com/gloewinger/1159127)
 - $\textbf{Part 3}$: [Associations with continuous variables](https://rpubs.com/gloewinger/1159129)
@@ -27,9 +27,15 @@ For the usage and a tutorial on package functions, please refer to [fastFMM's Vi
 
 See the `Tutorials` folder above for the datasets and Rmarkdown files used to generate the above guides.
 
-### Calling `fastFMM` from Python
+### Photometry Analysis Guide in Python
+- $\textbf{Part 1}$: [Binary Variables](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Photometry%20FLMM%20Guide%20Part%20I/fastFMM-photometry-binary.ipynb)
+- $\textbf{Part 2}$: [Testing changes within a trial between 2 periods (baseline vs. cue period)](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Photometry%20FLMM%20Guide%20Part%20II/fastFMM-photometry-withinTrial.ipynb)
+- $\textbf{Part 3}$: [Associations with continuous variables]((https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Photometry%20FLMM%20Guide%20Part%20III/fastFMM-photometry-Correlation.ipynb))
+- $\textbf{Part 4}$: [Testing Factor Variables](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Photometry%20FLMM%20Guide%20Part%20IV/fastFMM-photometry-ANOVA.ipynb)
+- $\textbf{Part 5}$: [Testing how signal–covariate associations change across trials/sessions]([https://rpubs.com/gloewinger/1159601](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Photometry%20FLMM%20Guide%20Part%20V/fastFMM-photometry-Interaction.ipynb))
 
-See the Python version of [Photometry FLMM Guide Part I](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Photometry%20FLMM%20Guide%20Part%20I/fastFMM-photometry-binary.ipynb) for an example of using `fastFMM` in Python through the Python packages `rpy2` and `fast_fmm_rpy2`. The tutorial assumes the `fastFMM` R package (and all its dependenices), and the `rpy2` Python package have already been installed, but we are working on more documentation for how to install and set up these packages for Python users.  Even if you intend to use the package purely within Python, it may be helpful to first install `fastFMM` from within RStudio to ensure all package dependenices are installed automatically. Finally, see 'python_fastFMM_vignette.py' in the [Github repo](https://github.com/gloewing/photometry_FLMM/tree/main/Tutorials) for a very brief example of using `fastFMM` on Python through the Python package `rpy2`. 
+### Calling `fastFMM` from Python
+See the ipynb Python version of all user guides in the [Tutorials folder](https://github.com/gloewing/photometry_FLMM/tree/main/Tutorials), which provides examples of using `fastFMM` in Python through the Python packages `rpy2` and `fast_fmm_rpy2`. The tutorial assumes the `fastFMM` R package (and all its dependenices), and the `rpy2` Python package have already been installed, but we provide a [user guide for installing `rpy2`](https://github.com/gloewing/photometry_FLMM/tree/main/Tutorials/Python%20rpy2%20installation) in the Tutorials folder.
 
 
 
