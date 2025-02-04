@@ -1,15 +1,14 @@
 from pathlib import Path
-from typing import Callable
 
 import pandas as pd
 import pytest
-from rpy2 import robjects as ro
+from rpy2 import robjects as ro  # type: ignore
 
 from fast_fmm_rpy2.ingest import (
     compare_df_dat,
+    compare_df_dat_in_r,
     pandas_read_in_csv_roundtrip,
     r_read_in_csv_rpy2_convert,
-    compare_df_dat_in_r,
 )
 
 

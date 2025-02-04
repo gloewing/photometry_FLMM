@@ -1,23 +1,18 @@
-from fast_fmm_rpy2.fmm_run import (
-    run_with_pandas_dataframe,
-    run_with_r_dataframe,
-    fui,
-)
 from pathlib import Path
-import pytest
+
 import numpy as np
+import pandas as pd
+import pytest
+import rpy2.rinterface as rinterface  # type: ignore
 from numpy import ndarray
 from pandas import DataFrame
-from rpy2 import robjects as ro
-from rpy2.robjects.vectors import BoolVector
-from rpy2.rinterface_lib.sexp import NULLType
-import rpy2.rinterface as rinterface  # type: ignore
 from rpy2 import robjects as ro  # type: ignore
+from rpy2.rinterface_lib.sexp import NULLType  # type: ignore
 from rpy2.robjects import pandas2ri  # type: ignore
 from rpy2.robjects.conversion import localconverter  # type: ignore
-from fast_fmm_rpy2.fmm_run import fui
-import pandas as pd
+from rpy2.robjects.vectors import BoolVector  # type: ignore
 
+from fast_fmm_rpy2.fmm_run import fui
 
 local_rules = ro.default_converter + pandas2ri.converter
 
