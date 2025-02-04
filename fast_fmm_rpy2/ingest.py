@@ -29,7 +29,7 @@ def pandas_read_in_csv_legacy(filepath: Path) -> pd.DataFrame:
 
 
 def r_read_in_csv_rpy2_convert(filepath: Path) -> ro.vectors.DataFrame:
-    ro.r(f'dat = read.csv("{str(filepath.absolute())}")')
+    ro.r(f'dat = read.csv("{str(filepath.absolute().as_posix())}")')
     dat = ro.r("dat")
     return dat
 
@@ -103,7 +103,7 @@ def pass_pandas_to_r(df: pd.DataFrame, r_var_name: str = "py_dat") -> None:
 
 def compare_df_dat_in_r(csv_filepath: Path) -> bool:
     with localconverter(ro.default_converter):
-        ro.r(f'dat = read.csv("{str(csv_filepath.absolute())}")')
+        ro.r(f'dat = read.csv("{str(csv_filepath.absolute().as_posix())}")')
     read_csv_in_pandas_pass_to_r(csv_filepath=csv_filepath)
     compare_result = (
         np.asarray(ro.r("all(na.omit(dat == py_dat))")).astype(bool).item()
