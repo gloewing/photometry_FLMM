@@ -21,7 +21,6 @@ jobs:
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           packages: fastFMM
-          dependencies: true
 
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@v5
