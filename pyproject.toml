@@ -23,6 +23,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "nb-clean>=4.0.1",
     "pandas-stubs",
     "ruff>=0.11.9",
 ]
