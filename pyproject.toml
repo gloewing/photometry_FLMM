@@ -14,11 +14,11 @@ requires-python = ">=3.10"
 license = {file = "LICENSE"}  # Add a LICENSE file if you have one
 
 dependencies = [
-    "rpy2",
     "jupyter",
     "pandas",
     "matplotlib",
     "fast-fmm-rpy2>=1.0.0",
+    "rpy2>=3.5",
 ]
 
 [project.optional-dependencies]

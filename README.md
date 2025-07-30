@@ -9,7 +9,7 @@ In order to run this tutorial the following must be installed:
 3. Optionally Python dependencies if using the Jupyter notebook versions of the tutorials
 
 ### 1. Install R
-For more information on installing R and system requirements see the official R [documentation](http://r-project.org/) and the [user guide](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Python%20rpy2%20installation/R%20and%20rpy2%20installation%20guide.ipynb) for installing R, `fastFMM` and `rpy2` from Python in the `Tutorials` folder.
+For more information on installing R and system requirements see the official R [documentation](http://r-project.org/) and the [user guide](https://github.com/gloewing/photometry_FLMM/blob/main/Tutorials/Python%20rpy2%20installation/R%20and%20rpy2%20installation%20guide.ipynb) for installing R, `fastFMM` and `rpy2` for Python in the `Tutorials` folder.
 
 ### 2. Install R packages
 
@@ -38,7 +38,7 @@ uv can be installed from PyPI (ex. `pip install uv`) or as a standalone installe
 
 Use uv to create a virtual environment with Python installed and all Python dependencies as defined in the pyproject.toml file.
 ```bash
-uv sync [--extra dev]
+uv sync
 ```
 
 3. Add the uv managed venv as a Jupyter notebook kernel
@@ -51,6 +51,20 @@ See [Using uv with Jupyter](https://docs.astral.sh/uv/guides/integration/jupyter
 
 > [!NOTE]
 > As the name implies `fast-fmm-rpy2` uses the Python package `rpy2` to wrap the R package. Refer to `rpy2` [documentation](https://rpy2.github.io/doc/v3.0.x/html/overview.html#installation) for troubleshooting or any [issues loading shared C libraries](https://github.com/rpy2/rpy2?tab=readme-ov-file#issues-loading-shared-c-libraries).
+
+### Known issues using Python Tutorials on Windows
+
+1. Versions 3.6.0 and 3.6.1 of rpy2 have a known issue with Windows. See the [GitHub issue](https://github.com/rpy2/rpy2/issues/1188) for a full overview. The bug has been fixed and will ship in the next rpy2 release (3.6.2). In the mean time the rpy2 dependency has been rolled back to version <3.6.
+
+2. If you encounter an issue with rpy2 not being able to find the shared C libraries [rpy2 suggests](https://github.com/rpy2/rpy2?tab=readme-ov-file#issues-loading-shared-c-libraries) setting the `LD_LIBRARY_PATH` environment variable:
+```
+export LD_LIBRARY_PATH="$(uv run python -m rpy2.situation LD_LIBRARY_PATH)":${LD_LIBRARY_PATH}
+```
+Note if you are not using uv to manage your environment remove `uv run` from the command above.
+
+3. If you encounter additional issues it may help to install [RTools](https://cran.r-project.org/bin/windows/Rtools/).
+
+4. Check current rpy2 [Windows issues on GitHub](https://github.com/rpy2/rpy2/issues?q=is%3Aissue%20state%3Aopen%20label%3AWindows). Windows is not officially supported by rpy2 however the community works hard to make it functional and bug fixes are made.
 
 ## Tutorials
 
